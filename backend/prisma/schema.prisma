@@ -1,0 +1,153 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int        @id @default(autoincrement())
+  username     String     @unique
+  email        String     @unique
+  phone        String?
+  passwordHash String
+  avatarUrl    String?
+  nickname     String?
+  bio          String?
+  gender       Int        @default(0) // 0: unknown, 1: male, 2: female
+  birthday     DateTime?
+  city         String?
+  role         Int        @default(0) // 0: normal user, 1: admin
+  status       Int        @default(1) // 1: active, 0: disabled
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  pets       Pet[]
+  posts      Post[]
+  comments   Comment[]
+  likes      Like[]
+  favorites  Favorite[]
+  files      File[]
+  notifications Notification[]
+}
+
+model Pet {
+  id         Int        @id @default(autoincrement())
+  userId     Int
+  name       String
+  type       String
+  breed      String?
+  gender     Int        @default(0) // 0: unknown, 1: male, 2: female
+  birthday   DateTime?
+  avatarUrl  String?
+  bio        String?
+  isActive   Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  user User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  posts Post[]
+}
+
+model Post {
+  id           Int        @id @default(autoincrement())
+  userId       Int
+  petId        Int?
+  title        String
+  content      String
+  coverUrl     String?
+  tags         String[]
+  category     String     @default("general") // general, help, share, discussion
+  status       Int        @default(1) // 1: active, 0: draft, -1: disabled
+  viewCount    Int        @default(0)
+  likeCount    Int        @default(0)
+  commentCount Int        @default(0)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pet       Pet?       @relation(fields: [petId], references: [id], onDelete: SetNull)
+  comments  Comment[]
+  favorites Favorite[]
+}
+
+model Comment {
+  id         Int        @id @default(autoincrement())
+  userId     Int
+  postId     Int
+  parentId   Int?
+  content    String
+  status     Int        @default(1) // 1: active, -1: disabled
+  likeCount  Int        @default(0)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post     Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Comment[] @relation("CommentReplies")
+}
+
+model Like {
+  id         Int       @id @default(autoincrement())
+  userId     Int
+  targetType String    // post, comment
+  targetId   Int
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, targetType, targetId])
+  @@index([targetType, targetId])
+}
+
+model Favorite {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  postId    Int
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+}
+
+model File {
+  id           Int        @id @default(autoincrement())
+  userId       Int
+  originalName String
+  fileName     String
+  filePath     String
+  fileSize     BigInt
+  mimeType     String
+  fileType     String     @default("image") // image, video, file
+  status       Int        @default(1) // 1: active, 0: deleted
+  createdAt    DateTime   @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Tag {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  description String?
+  postCount   Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Notification {
+  id        Int        @id @default(autoincrement())
+  userId    Int
+  type      String     // like, comment, follow, system
+  content   String
+  relatedId Int?
+  isRead    Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
