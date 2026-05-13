@@ -1,18 +1,21 @@
 import { IsOptional, IsString, IsInt, Min, Max } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class PostsQueryDto {
   @ApiPropertyOptional({ description: '页码' })
+  @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(1)
-  @IsOptional()
   page?: number = 1;
 
   @ApiPropertyOptional({ description: '每页数量' })
+  @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   @Max(100)
-  @IsOptional()
   limit?: number = 20;
 
   @ApiPropertyOptional({ description: '分类' })
