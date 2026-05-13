@@ -246,8 +246,8 @@ export const api = createApi({
     }),
     unlikePost: builder.mutation<void, number>({
       query: (id) => ({
-        url: `/posts/${id}/unlike`,
-        method: 'POST',
+        url: `/posts/${id}/like`,
+        method: 'DELETE',
       }),
       invalidatesTags: (result, error, id) => [{ type: 'Post', id }],
     }),
@@ -260,10 +260,14 @@ export const api = createApi({
     }),
     unfavoritePost: builder.mutation<void, number>({
       query: (id) => ({
-        url: `/posts/${id}/unfavorite`,
-        method: 'POST',
+        url: `/posts/${id}/favorite`,
+        method: 'DELETE',
       }),
       invalidatesTags: (result, error, id) => [{ type: 'Post', id }],
+    }),
+    getFavorites: builder.query<PaginationResponse<Post>, void>({
+      query: () => '/posts/favorites',
+      providesTags: [{ type: 'Post', id: 'FAVORITES' }],
     }),
 
     // Comment
@@ -315,8 +319,8 @@ export const api = createApi({
     }),
     unlikeComment: builder.mutation<void, number>({
       query: (id) => ({
-        url: `/comments/${id}/unlike`,
-        method: 'POST',
+        url: `/comments/${id}/like`,
+        method: 'DELETE',
       }),
       invalidatesTags: (result, error, id) => [{ type: 'Comment', id }],
     }),
@@ -396,6 +400,7 @@ export const {
   useUnlikePostMutation,
   useFavoritePostMutation,
   useUnfavoritePostMutation,
+  useGetFavoritesQuery,
   useGetCommentsQuery,
   useCreateCommentMutation,
   useUpdateCommentMutation,

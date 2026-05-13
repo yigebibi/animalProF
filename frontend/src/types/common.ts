@@ -75,6 +75,8 @@ export interface Post {
   updatedAt: string;
   user?: User;
   pet?: Pet;
+  isLiked?: boolean;
+  isFavorited?: boolean;
 }
 
 export interface Comment {
