@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useGetPostsQuery } from '../../store/services/api';
 import { Post } from '../../types/common';
+import { HomePostsSkeleton } from '../../components/Common/Skeleton';
 
 const CATEGORIES = [
   { name: '🐶 狗狗', count: 1234, color: 'from-amber-500', category: 'dog' },
@@ -152,9 +153,7 @@ const HomePage: React.FC = () => {
             </Link>
           </div>
           {hotLoading ? (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-4 border-purple-500 border-t-transparent"></div>
-            </div>
+            <HomePostsSkeleton count={3} />
           ) : hotData && hotData.items.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {hotData.items.map((post) => (
@@ -177,9 +176,7 @@ const HomePage: React.FC = () => {
             </Link>
           </div>
           {latestLoading ? (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-4 border-purple-500 border-t-transparent"></div>
-            </div>
+            <HomePostsSkeleton count={3} />
           ) : latestData && latestData.items.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {latestData.items.map((post) => (

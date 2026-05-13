@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useGetPostsQuery } from '../../store/services/api';
 import { Post } from '../../types/common';
 import { debounce } from '../../utils/debounce';
+import { PostListSkeleton } from '../../components/Common/Skeleton';
 
 const CATEGORIES = [
   { value: '', label: '全部分类' },
@@ -155,11 +156,9 @@ const PostListPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Loading */}
+        {/* Loading Skeleton */}
         {isLoading && (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent"></div>
-          </div>
+          <PostListSkeleton count={12} />
         )}
 
         {/* Posts Grid */}
@@ -264,7 +263,7 @@ const PostListPage: React.FC = () => {
             )}
 
             {/* Pagination */}
-            {data && data.totalPages > 1 && (
+            {data && Math.ceil(data.total / data.limit) > 1 && (
               <div className="mt-8 flex justify-center gap-2">
                 <button
                   onClick={() => handlePageChange(page - 1)}
@@ -274,14 +273,15 @@ const PostListPage: React.FC = () => {
                   上一页
                 </button>
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(5, data.totalPages) }, (_, i) => {
+                  {Array.from({ length: Math.min(5, Math.ceil(data.total / data.limit)) }, (_, i) => {
+                    const totalPages = Math.ceil(data.total / data.limit);
                     let pageNum;
-                    if (data.totalPages <= 5) {
+                    if (totalPages <= 5) {
                       pageNum = i + 1;
                     } else if (page <= 3) {
                       pageNum = i + 1;
-                    } else if (page >= data.totalPages - 2) {
-                      pageNum = data.totalPages - 4 + i;
+                    } else if (page >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
                     } else {
                       pageNum = page - 2 + i;
                     }
@@ -302,7 +302,7 @@ const PostListPage: React.FC = () => {
                 </div>
                 <button
                   onClick={() => handlePageChange(page + 1)}
-                  disabled={page === data.totalPages}
+                  disabled={page === Math.ceil(data.total / data.limit)}
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   下一页

@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import {
   useGetFavoritesQuery,
   useUnfavoritePostMutation,
-} from '../../store/services/api';
-import { Post } from '../../types/common';
+} from '../../../store/services/api';
+import { Post } from '../../../types/common';
 import SideMenu from '../components/SideMenu';
 
 const MyFavoritesPage: React.FC = () => {

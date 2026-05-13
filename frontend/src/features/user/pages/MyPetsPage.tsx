@@ -5,8 +5,8 @@ import {
   useAddPetMutation,
   useUpdatePetMutation,
   useDeletePetMutation,
-} from '../../store/services/api';
-import { Pet } from '../../types/common';
+} from '../../../store/services/api';
+import { Pet } from '../../../types/common';
 import SideMenu from '../components/SideMenu';
 import { useAuth } from '../../../hooks/useAuth';
 

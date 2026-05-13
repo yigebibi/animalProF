@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import {
   useGetPostsQuery,
   useDeletePostMutation,
-} from '../../store/services/api';
-import { Post } from '../../types/common';
+} from '../../../store/services/api';
+import { Post } from '../../../types/common';
 import { useAuth } from '../../../hooks/useAuth';
 import SideMenu from '../components/SideMenu';
 
@@ -207,7 +207,7 @@ const MyPostsPage: React.FC = () => {
                   ))}
 
                   {/* Pagination */}
-                  {data && data.totalPages > 1 && (
+                  {data && Math.ceil(data.total / data.limit) > 1 && (
                     <div className="flex justify-center gap-2 mt-6">
                       <button
                         onClick={() => setPage(page - 1)}
@@ -217,11 +217,11 @@ const MyPostsPage: React.FC = () => {
                         上一页
                       </button>
                       <span className="px-4 py-2">
-                        {page} / {data.totalPages}
+                        {page} / {Math.ceil(data.total / data.limit)}
                       </span>
                       <button
                         onClick={() => setPage(page + 1)}
-                        disabled={page === data.totalPages}
+                        disabled={page === Math.ceil(data.total / data.limit)}
                         className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
                       >
                         下一页

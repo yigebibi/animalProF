@@ -96,6 +96,7 @@ export interface CreatePostRequest {
   petId?: number;
   tags?: string[];
   category?: string;
+  coverUrl?: string;
 }
 
 export interface UpdatePostRequest extends Partial<CreatePostRequest> {
