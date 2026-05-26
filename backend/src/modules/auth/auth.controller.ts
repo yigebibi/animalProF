@@ -1,7 +1,7 @@
 import { Controller, Post, Body, HttpCode } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { LoginDto, RegisterDto } from './dto';
+import { ForgotPasswordDto, LoginDto, RegisterDto, ResetPasswordDto } from './dto';
 import { Public } from '../../common/decorators/public.decorator';
 
 @ApiTags('auth')
@@ -22,5 +22,21 @@ export class AuthController {
   @ApiOperation({ summary: '用户注册' })
   register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
+  }
+
+  @Post('forgot-password')
+  @Public()
+  @HttpCode(200)
+  @ApiOperation({ summary: '发送重置密码链接' })
+  forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(forgotPasswordDto);
+  }
+
+  @Post('reset-password')
+  @Public()
+  @HttpCode(200)
+  @ApiOperation({ summary: '重置密码' })
+  resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(resetPasswordDto);
   }
 }

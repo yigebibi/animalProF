@@ -6,7 +6,7 @@ import { useAuth } from '../../../hooks/useAuth';
 import { UserStats } from '../types/user.types';
 
 const ProfilePage: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const [stats, setStats] = useState<UserStats>({
@@ -72,6 +72,14 @@ const ProfilePage: React.FC = () => {
     console.log('Avatar upload:', file);
     // TODO: 实现头像上传功能
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-purple-500 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   if (!user) {
     navigate('/auth/login');

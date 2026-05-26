@@ -134,6 +134,7 @@ export interface FileInfo {
   originalName: string;
   fileName: string;
   filePath: string;
+  url?: string;
   fileSize: number;
   mimeType: string;
   fileType: string;

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../store/store';
 import { setCredentials, logout, setUser, setLoading, setError, clearError as clearErrorAction } from '../store/slices/authSlice';
@@ -14,9 +15,31 @@ export const useAuth = () => {
   const [registerMutation, { isLoading: registerLoading }] = useRegisterMutation();
   const [updateProfileMutation, { isLoading: updateProfileLoading }] = useUpdateProfileMutation();
   const [changePasswordMutation, { isLoading: changePasswordLoading }] = useChangePasswordMutation();
-  const { refetch: refetchProfile } = useGetProfileQuery(undefined, {
-    skip: !isAuthenticated,
+  const {
+    data: profile,
+    error: profileError,
+    isFetching: profileLoading,
+    refetch: refetchProfile,
+  } = useGetProfileQuery(undefined, {
+    skip: !token,
   });
+
+  useEffect(() => {
+    if (profile) {
+      dispatch(setUser(profile));
+    }
+  }, [dispatch, profile]);
+
+  useEffect(() => {
+    if (!profileError || !token) {
+      return;
+    }
+
+    const status = 'status' in profileError ? profileError.status : undefined;
+    if (status === 401 || status === 403) {
+      dispatch(logout());
+    }
+  }, [dispatch, profileError, token]);
 
   const login = async (
     credentials: LoginRequest,
@@ -119,7 +142,13 @@ export const useAuth = () => {
     token,
     user,
     isAuthenticated,
-    isLoading: isLoading || loginLoading || registerLoading || updateProfileLoading || changePasswordLoading,
+    isLoading:
+      isLoading ||
+      loginLoading ||
+      registerLoading ||
+      updateProfileLoading ||
+      changePasswordLoading ||
+      (!!token && !user && profileLoading),
     error,
     login,
     register,

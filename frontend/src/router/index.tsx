@@ -45,6 +45,7 @@ export const router = createBrowserRouter([
       { path: 'posts', element: <SuspenseFallback><PostListPage /></SuspenseFallback> },
       { path: 'posts/:id', element: <SuspenseFallback><PostDetailPage /></SuspenseFallback> },
       { path: 'posts/create', element: <ProtectedRoute><SuspenseFallback><PostCreatePage /></SuspenseFallback></ProtectedRoute> },
+      { path: 'posts/:id/edit', element: <ProtectedRoute><SuspenseFallback><PostCreatePage /></SuspenseFallback></ProtectedRoute> },
       { path: 'search', element: <SuspenseFallback><SearchPage /></SuspenseFallback> },
       { path: 'profile', element: <ProtectedRoute><SuspenseFallback><ProfilePage /></SuspenseFallback></ProtectedRoute> },
       { path: 'profile/edit', element: <ProtectedRoute><SuspenseFallback><EditProfilePage /></SuspenseFallback></ProtectedRoute> },

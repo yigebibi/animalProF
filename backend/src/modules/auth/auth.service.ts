@@ -1,14 +1,16 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../database/prisma.service';
-import { LoginDto, RegisterDto } from './dto';
+import { ForgotPasswordDto, LoginDto, RegisterDto, ResetPasswordDto } from './dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -89,5 +91,65 @@ export class AuthService {
         role: user.role,
       },
     };
+  }
+
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: forgotPasswordDto.email },
+    });
+
+    if (user) {
+      const token = await this.jwtService.signAsync(
+        {
+          userId: user.id,
+          purpose: 'password-reset',
+        },
+        { expiresIn: '1h' },
+      );
+
+      const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3001';
+      console.log(`Password reset link for ${user.email}: ${frontendUrl}/auth/reset-password?token=${token}`);
+    }
+
+    return {
+      message: '如果邮箱已注册，重置密码链接已发送',
+    };
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto) {
+    const { token, password, confirmPassword } = resetPasswordDto;
+
+    if (password !== confirmPassword) {
+      throw new BadRequestException('两次输入的密码不一致');
+    }
+
+    let payload: { userId: number; purpose?: string };
+
+    try {
+      payload = await this.jwtService.verifyAsync(token);
+    } catch {
+      throw new BadRequestException('重置密码链接无效或已过期');
+    }
+
+    if (payload.purpose !== 'password-reset') {
+      throw new BadRequestException('重置密码链接无效');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.userId },
+    });
+
+    if (!user) {
+      throw new BadRequestException('用户不存在');
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash },
+    });
+
+    return { message: '密码重置成功' };
   }
 }

@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useCreatePostMutation, useUploadFileMutation, useGetPetsQuery } from '../../store/services/api';
+import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate, Link, useParams } from 'react-router-dom';
+import { useCreatePostMutation, useGetPostByIdQuery, useGetPetsQuery, useUpdatePostMutation, useUploadFileMutation } from '../../store/services/api';
 import { useAuth } from '../../hooks/useAuth';
 
 const CATEGORIES = [
@@ -13,9 +13,12 @@ const CATEGORIES = [
 const COMMON_TAGS = ['可爱', '日常', '求助', '经验', '搞笑', '宠物用品', '健康', '训练', '饮食', '美容'];
 
 const PostCreatePage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isEditMode = !!id;
+  const postId = Number(id);
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -27,8 +30,31 @@ const PostCreatePage: React.FC = () => {
   const [selectedPetId, setSelectedPetId] = useState<number | undefined>(undefined);
 
   const [createPost, { isLoading: creating }] = useCreatePostMutation();
+  const [updatePost, { isLoading: updating }] = useUpdatePostMutation();
   const [uploadFile, { isLoading: uploading }] = useUploadFileMutation();
   const { data: pets } = useGetPetsQuery();
+  const { data: post, isLoading: loadingPost } = useGetPostByIdQuery(postId, {
+    skip: !isEditMode || !postId,
+  });
+
+  useEffect(() => {
+    if (!post) {
+      return;
+    }
+
+    if (user && post.userId !== user.id) {
+      navigate(`/posts/${post.id}`);
+      return;
+    }
+
+    setTitle(post.title);
+    setContent(post.content);
+    setCategory(post.category);
+    setTags(post.tags || []);
+    setCoverImage(post.coverUrl || null);
+    setCoverFile(null);
+    setSelectedPetId(post.petId);
+  }, [navigate, post, user]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -93,26 +119,38 @@ const PostCreatePage: React.FC = () => {
         const formData = new FormData();
         formData.append('file', coverFile);
         const fileResult = await uploadFile(formData).unwrap();
-        coverUrl = fileResult.filePath;
+        coverUrl = fileResult.url || fileResult.filePath;
       }
 
-      const result = await createPost({
+      const payload = {
         title: title.trim(),
         content: content.trim(),
         category,
         tags: tags.length > 0 ? tags : undefined,
         petId: selectedPetId,
         coverUrl,
-      }).unwrap();
+      };
+
+      const result = isEditMode
+        ? await updatePost({ id: postId, ...payload }).unwrap()
+        : await createPost(payload).unwrap();
 
       navigate(`/posts/${result.id}`);
     } catch (err) {
-      console.error('Failed to create post:', err);
-      alert('发布失败，请稍后重试');
+      console.error('Failed to save post:', err);
+      alert(isEditMode ? '更新失败，请稍后重试' : '发布失败，请稍后重试');
     }
   };
 
-  const isSubmitting = creating || uploading;
+  const isSubmitting = creating || updating || uploading;
+
+  if (loadingPost) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-purple-500 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -129,7 +167,7 @@ const PostCreatePage: React.FC = () => {
         </Link>
 
         <div className="bg-white rounded-xl shadow-md p-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">发布帖子</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">{isEditMode ? '编辑帖子' : '发布帖子'}</h1>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Cover Image */}
@@ -318,7 +356,7 @@ const PostCreatePage: React.FC = () => {
                 disabled={isSubmitting || !title.trim() || !content.trim()}
                 className="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? '发布中...' : '发布帖子'}
+                {isSubmitting ? (isEditMode ? '保存中...' : '发布中...') : (isEditMode ? '保存修改' : '发布帖子')}
               </button>
             </div>
           </form>

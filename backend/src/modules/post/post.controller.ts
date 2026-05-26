@@ -28,6 +28,14 @@ export class PostController {
     return this.postService.findAll(query);
   }
 
+  @Get('favorites')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '获取收藏的帖子' })
+  getFavorites(@User('userId') userId: number, @Query('page') page = 1, @Query('limit') limit = 20) {
+    return this.postService.getFavorites(userId, +page, +limit);
+  }
+
   @Get(':id')
   @Public()
   @ApiOperation({ summary: '获取帖子详情' })
@@ -93,14 +101,6 @@ export class PostController {
   @ApiOperation({ summary: '取消收藏帖子' })
   unfavoritePost(@User('userId') userId: number, @Param('id') id: string) {
     return this.postService.unfavoritePost(userId, +id);
-  }
-
-  @Get('favorites')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '获取收藏的帖子' })
-  getFavorites(@User('userId') userId: number, @Query('page') page = 1, @Query('limit') limit = 20) {
-    return this.postService.getFavorites(userId, +page, +limit);
   }
 
   @Get(':id/like/status')

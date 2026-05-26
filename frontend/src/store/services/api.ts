@@ -23,6 +23,28 @@ import {
 } from '../../types/api';
 import { User, Pet, Post, Comment, Tag, Notification, PaginationResponse, FileInfo } from '../../types/common';
 
+const unwrapResponse = <T>(response: any, fallbackMessage: string): T => {
+  if (response && response.code === 200) {
+    return response.data;
+  }
+
+  throw new Error(response?.message || fallbackMessage);
+};
+
+const unwrapPaginationResponse = <T>(response: any, fallbackMessage: string): PaginationResponse<T> => {
+  const payload = unwrapResponse<{ data: T[]; meta: { total: number; page: number; limit: number } }>(
+    response,
+    fallbackMessage,
+  );
+
+  return {
+    items: payload.data || [],
+    total: payload.meta?.total || 0,
+    page: payload.meta?.page || 1,
+    limit: payload.meta?.limit || 0,
+  };
+};
+
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
@@ -168,9 +190,11 @@ export const api = createApi({
     getPets: builder.query<Pet[], void>({
       query: () => '/pets',
       providesTags: ['Pet'],
+      transformResponse: (response: any) => unwrapResponse<Pet[]>(response, '获取宠物失败'),
     }),
     getPetById: builder.query<Pet, number>({
       query: (id) => `/pets/${id}`,
+      transformResponse: (response: any) => unwrapResponse<Pet>(response, '获取宠物详情失败'),
     }),
     addPet: builder.mutation<Pet, CreatePetRequest>({
       query: (data) => ({
@@ -179,6 +203,7 @@ export const api = createApi({
         body: data,
       }),
       invalidatesTags: ['Pet'],
+      transformResponse: (response: any) => unwrapResponse<Pet>(response, '添加宠物失败'),
     }),
     updatePet: builder.mutation<Pet, UpdatePetRequest>({
       query: ({ id, ...data }) => ({
@@ -187,6 +212,7 @@ export const api = createApi({
         body: data,
       }),
       invalidatesTags: ['Pet'],
+      transformResponse: (response: any) => unwrapResponse<Pet>(response, '更新宠物失败'),
     }),
     deletePet: builder.mutation<void, number>({
       query: (id) => ({
@@ -202,6 +228,7 @@ export const api = createApi({
         url: '/posts',
         params,
       }),
+      transformResponse: (response: any) => unwrapPaginationResponse<Post>(response, '获取帖子失败'),
       providesTags: (result) =>
         result
           ? [
@@ -212,6 +239,17 @@ export const api = createApi({
     }),
     getPostById: builder.query<Post, number>({
       query: (id) => `/posts/${id}`,
+      transformResponse: (response: any) => unwrapResponse<Post>(response, '获取帖子详情失败'),
+      providesTags: (result, error, id) => [{ type: 'Post', id }],
+    }),
+    checkPostLikeStatus: builder.query<{ isLiked: boolean }, number>({
+      query: (id) => `/posts/${id}/like/status`,
+      transformResponse: (response: any) => unwrapResponse<{ isLiked: boolean }>(response, '获取点赞状态失败'),
+      providesTags: (result, error, id) => [{ type: 'Post', id }],
+    }),
+    checkPostFavoriteStatus: builder.query<{ isFavorited: boolean }, number>({
+      query: (id) => `/posts/${id}/favorite/status`,
+      transformResponse: (response: any) => unwrapResponse<{ isFavorited: boolean }>(response, '获取收藏状态失败'),
       providesTags: (result, error, id) => [{ type: 'Post', id }],
     }),
     createPost: builder.mutation<Post, CreatePostRequest>({
@@ -221,6 +259,7 @@ export const api = createApi({
         body: data,
       }),
       invalidatesTags: [{ type: 'Post', id: 'LIST' }],
+      transformResponse: (response: any) => unwrapResponse<Post>(response, '发布帖子失败'),
     }),
     updatePost: builder.mutation<Post, UpdatePostRequest>({
       query: ({ id, ...data }) => ({
@@ -229,6 +268,7 @@ export const api = createApi({
         body: data,
       }),
       invalidatesTags: (result, error, { id }) => [{ type: 'Post', id }, { type: 'Post', id: 'LIST' }],
+      transformResponse: (response: any) => unwrapResponse<Post>(response, '更新帖子失败'),
     }),
     deletePost: builder.mutation<void, number>({
       query: (id) => ({
@@ -268,14 +308,26 @@ export const api = createApi({
     getFavorites: builder.query<PaginationResponse<Post>, void>({
       query: () => '/posts/favorites',
       providesTags: [{ type: 'Post', id: 'FAVORITES' }],
+      transformResponse: (response: any) => unwrapPaginationResponse<Post>(response, '获取收藏失败'),
     }),
 
     // Comment
     getComments: builder.query<PaginationResponse<Comment>, GetCommentsParams>({
-      query: (params) => ({
-        url: '/comments',
-        params,
-      }),
+      query: ({ postId }) => `/comments/post/${postId}`,
+      transformResponse: (response: any) => {
+        if (response && response.code === 200) {
+          const items = response.data || [];
+
+          return {
+            items,
+            total: items.length,
+            page: 1,
+            limit: items.length,
+          };
+        }
+
+        throw new Error(response.message || '获取评论失败');
+      },
       providesTags: (result, error, { postId }) =>
         result
           ? [
@@ -290,6 +342,7 @@ export const api = createApi({
         method: 'POST',
         body: data,
       }),
+      transformResponse: (response: any) => unwrapResponse<Comment>(response, '发表评论失败'),
       invalidatesTags: (result, error, { postId }) => [
         { type: 'Comment', id: `POST_${postId}` },
         { type: 'Post', id: postId },
@@ -332,6 +385,7 @@ export const api = createApi({
         method: 'POST',
         body: formData,
       }),
+      transformResponse: (response: any) => unwrapResponse<FileInfo>(response, '上传文件失败'),
     }),
     deleteFile: builder.mutation<void, number>({
       query: (id) => ({
@@ -393,6 +447,8 @@ export const {
   useDeletePetMutation,
   useGetPostsQuery,
   useGetPostByIdQuery,
+  useCheckPostLikeStatusQuery,
+  useCheckPostFavoriteStatusQuery,
   useCreatePostMutation,
   useUpdatePostMutation,
   useDeletePostMutation,
