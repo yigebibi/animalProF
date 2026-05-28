@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
 interface LayoutProps {
@@ -9,6 +9,8 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     // 监听窗口大小变化，关闭移动菜单
@@ -22,9 +24,21 @@ const Layout: React.FC<LayoutProps> = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!profileMenuRef.current?.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleLogout = () => {
     logout();
     setIsMobileMenuOpen(false);
+    setIsProfileMenuOpen(false);
   };
 
   return (
@@ -35,22 +49,22 @@ const Layout: React.FC<LayoutProps> = () => {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center">
-              <a href="/" className="flex items-center">
+              <Link to="/" className="flex items-center">
                 <div className="text-xl font-bold text-purple-600">🐾 宠物论坛</div>
-              </a>
+              </Link>
             </div>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-8">
-              <a href="/" className="text-gray-700 hover:text-purple-600 font-medium">
+              <NavLink to="/" className="text-gray-700 hover:text-purple-600 font-medium">
                 首页
-              </a>
-              <a href="/posts" className="text-gray-700 hover:text-purple-600 font-medium">
+              </NavLink>
+              <NavLink to="/posts" className="text-gray-700 hover:text-purple-600 font-medium">
                 帖子
-              </a>
-              <a href="/search" className="text-gray-700 hover:text-purple-600 font-medium">
+              </NavLink>
+              <NavLink to="/search" className="text-gray-700 hover:text-purple-600 font-medium">
                 搜索
-              </a>
+              </NavLink>
             </nav>
 
             {/* Right Section */}
@@ -78,15 +92,19 @@ const Layout: React.FC<LayoutProps> = () => {
 
                   {/* Desktop Profile Menu */}
                   <div className="hidden md:flex items-center space-x-4">
-                    <a
-                      href="/posts/create"
+                    <Link
+                      to="/posts/create"
                       className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 font-medium transition-colors"
                     >
                       发布帖子
-                    </a>
+                    </Link>
 
-                    <div className="relative group">
-                      <div className="flex items-center cursor-pointer">
+                    <div className="relative" ref={profileMenuRef}>
+                      <button
+                        type="button"
+                        onClick={() => setIsProfileMenuOpen((open) => !open)}
+                        className="flex items-center cursor-pointer"
+                      >
                         <img
                           src={user?.avatarUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user?.id}
                           alt={user?.nickname || user?.username}
@@ -94,7 +112,7 @@ const Layout: React.FC<LayoutProps> = () => {
                         />
                         <span className="ml-2 text-gray-700 font-medium">{user?.nickname || user?.username}</span>
                         <svg
-                          className="w-4 h-4 ml-1 text-gray-400 group-hover:text-gray-600"
+                          className={`w-4 h-4 ml-1 text-gray-400 transition-transform ${isProfileMenuOpen ? 'rotate-180' : ''}`}
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -106,22 +124,25 @@ const Layout: React.FC<LayoutProps> = () => {
                             d="M19 9l-7 7-7-7"
                           />
                         </svg>
-                      </div>
+                      </button>
                       {/* Dropdown Menu */}
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden group-hover:block">
-                        <a
-                          href="/profile"
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          个人中心
-                        </a>
-                        <button
-                          onClick={handleLogout}
-                          className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                        >
-                          退出登录
-                        </button>
-                      </div>
+                      {isProfileMenuOpen && (
+                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                          <Link
+                            to="/profile"
+                            onClick={() => setIsProfileMenuOpen(false)}
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            个人中心
+                          </Link>
+                          <button
+                            onClick={handleLogout}
+                            className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                          >
+                            退出登录
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </>
@@ -146,15 +167,15 @@ const Layout: React.FC<LayoutProps> = () => {
                     </svg>
                   </button>
                   <div className="hidden md:flex space-x-3">
-                    <a href="/auth/login" className="text-gray-700 hover:text-purple-600 font-medium">
+                    <Link to="/auth/login" className="text-gray-700 hover:text-purple-600 font-medium">
                       登录
-                    </a>
-                    <a
-                      href="/auth/register"
+                    </Link>
+                    <Link
+                      to="/auth/register"
                       className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 font-medium transition-colors"
                     >
                       注册
-                    </a>
+                    </Link>
                   </div>
                 </>
               )}
@@ -166,43 +187,43 @@ const Layout: React.FC<LayoutProps> = () => {
         {isMobileMenuOpen && (
           <div className="md:hidden bg-white shadow-lg border-t">
             <div className="px-2 pt-2 pb-3 space-y-1">
-              <a
-                href="/"
+              <Link
+                to="/"
                 className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-purple-600 hover:bg-purple-50"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 首页
-              </a>
-              <a
-                href="/posts"
+              </Link>
+              <Link
+                to="/posts"
                 className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-purple-600 hover:bg-purple-50"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 帖子
-              </a>
-              <a
-                href="/search"
+              </Link>
+              <Link
+                to="/search"
                 className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-purple-600 hover:bg-purple-50"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 搜索
-              </a>
+              </Link>
               {isAuthenticated ? (
                 <>
-                  <a
-                    href="/posts/create"
+                  <Link
+                    to="/posts/create"
                     className="block px-3 py-2 rounded-md text-base font-medium text-white bg-purple-600 hover:bg-purple-700"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     发布帖子
-                  </a>
-                  <a
-                    href="/profile"
+                  </Link>
+                  <Link
+                    to="/profile"
                     className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-purple-600 hover:bg-purple-50"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     个人中心
-                  </a>
+                  </Link>
                   <button
                     onClick={handleLogout}
                     className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50"
@@ -212,20 +233,20 @@ const Layout: React.FC<LayoutProps> = () => {
                 </>
               ) : (
                 <>
-                  <a
-                    href="/auth/login"
+                  <Link
+                    to="/auth/login"
                     className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-purple-600 hover:bg-purple-50"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     登录
-                  </a>
-                  <a
-                    href="/auth/register"
+                  </Link>
+                  <Link
+                    to="/auth/register"
                     className="block px-3 py-2 rounded-md text-base font-medium text-white bg-purple-600 hover:bg-purple-700"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     注册
-                  </a>
+                  </Link>
                 </>
               )}
             </div>
@@ -251,10 +272,10 @@ const Layout: React.FC<LayoutProps> = () => {
             <div>
               <h4 className="text-md font-medium text-gray-900 mb-4">快速链接</h4>
               <ul className="space-y-2">
-                <li><a href="/about" className="text-gray-600 hover:text-purple-600">关于我们</a></li>
-                <li><a href="/contact" className="text-gray-600 hover:text-purple-600">联系我们</a></li>
-                <li><a href="/terms" className="text-gray-600 hover:text-purple-600">服务条款</a></li>
-                <li><a href="/privacy" className="text-gray-600 hover:text-purple-600">隐私政策</a></li>
+                <li><Link to="/about" className="text-gray-600 hover:text-purple-600">关于我们</Link></li>
+                <li><Link to="/contact" className="text-gray-600 hover:text-purple-600">联系我们</Link></li>
+                <li><Link to="/terms" className="text-gray-600 hover:text-purple-600">服务条款</Link></li>
+                <li><Link to="/privacy" className="text-gray-600 hover:text-purple-600">隐私政策</Link></li>
               </ul>
             </div>
             <div>

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useGetPostsQuery } from '../../store/services/api';
 import { Post } from '../../types/common';
 import { debounce } from '../../utils/debounce';
@@ -22,12 +22,19 @@ const SORT_OPTIONS = [
 
 const PostListPage: React.FC = () => {
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialPage = Number(searchParams.get('page') || '1');
+  const initialCategory = searchParams.get('category') || '';
+  const initialSearch = searchParams.get('search') || '';
+  const initialSortBy = searchParams.get('sortBy') || 'createdAt';
+  const initialSortOrder = searchParams.get('sortOrder') || 'desc';
+
+  const [page, setPage] = useState(Number.isNaN(initialPage) || initialPage < 1 ? 1 : initialPage);
   const [limit] = useState(12);
-  const [category, setCategory] = useState('');
-  const [search, setSearch] = useState('');
-  const [sortBy, setSortBy] = useState('createdAt');
-  const [sortOrder, setSortOrder] = useState('desc');
+  const [category, setCategory] = useState(initialCategory);
+  const [search, setSearch] = useState(initialSearch);
+  const [sortBy, setSortBy] = useState(initialSortBy);
+  const [sortOrder, setSortOrder] = useState(initialSortOrder);
 
   const { data, isLoading, isError, error } = useGetPostsQuery({
     page,
@@ -38,9 +45,9 @@ const PostListPage: React.FC = () => {
     sortOrder: sortOrder as any,
   });
 
-  const [searchInput, setSearchInput] = useState(search);
+  const [searchInput, setSearchInput] = useState(initialSearch);
 
-  const debouncedSearch = React.useMemo(
+  const debouncedSearch = useMemo(
     () =>
       debounce((value: string) => {
         setSearch(value);
@@ -48,6 +55,28 @@ const PostListPage: React.FC = () => {
       }, 500),
     []
   );
+
+  useEffect(() => {
+    const nextParams = new URLSearchParams();
+
+    if (page > 1) {
+      nextParams.set('page', String(page));
+    }
+    if (category) {
+      nextParams.set('category', category);
+    }
+    if (search) {
+      nextParams.set('search', search);
+    }
+    if (sortBy !== 'createdAt') {
+      nextParams.set('sortBy', sortBy);
+    }
+    if (sortOrder !== 'desc') {
+      nextParams.set('sortOrder', sortOrder);
+    }
+
+    setSearchParams(nextParams, { replace: true });
+  }, [category, page, search, setSearchParams, sortBy, sortOrder]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(e.target.value);

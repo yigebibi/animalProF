@@ -6,9 +6,11 @@ import {
 } from '../../../store/services/api';
 import { Post } from '../../../types/common';
 import SideMenu from '../components/SideMenu';
+import { useAuth } from '../../../hooks/useAuth';
 
 const MyFavoritesPage: React.FC = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [page, setPage] = useState(1);
   const [showUnfavoriteConfirm, setShowUnfavoriteConfirm] = useState<number | null>(null);
 
@@ -32,6 +34,10 @@ const MyFavoritesPage: React.FC = () => {
         break;
       case 'settings':
         navigate('/profile/settings');
+        break;
+      case 'logout':
+        logout();
+        navigate('/auth/login');
         break;
       default:
         break;

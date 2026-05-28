@@ -5,12 +5,12 @@ import {
   useDeletePostMutation,
 } from '../../../store/services/api';
 import { Post } from '../../../types/common';
-import { useAuth } from '../../../hooks/useAuth';
 import SideMenu from '../components/SideMenu';
+import { useAuth } from '../../../hooks/useAuth';
 
 const MyPostsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [page, setPage] = useState(1);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
 
@@ -34,6 +34,10 @@ const MyPostsPage: React.FC = () => {
         break;
       case 'settings':
         navigate('/profile/settings');
+        break;
+      case 'logout':
+        logout();
+        navigate('/auth/login');
         break;
       default:
         break;

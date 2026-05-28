@@ -72,6 +72,10 @@ const SettingsPage: React.FC = () => {
       case 'settings':
         // 已在设置页面
         break;
+      case 'logout':
+        logout();
+        navigate('/auth/login');
+        break;
       default:
         break;
     }

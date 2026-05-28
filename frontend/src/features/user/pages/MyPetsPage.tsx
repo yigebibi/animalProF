@@ -19,7 +19,7 @@ const GENDER_OPTIONS = [
 
 const MyPetsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { logout } = useAuth();
 
   const [showModal, setShowModal] = useState(false);
   const [editingPet, setEditingPet] = useState<Pet | null>(null);
@@ -119,6 +119,10 @@ const MyPetsPage: React.FC = () => {
         break;
       case 'settings':
         navigate('/profile/settings');
+        break;
+      case 'logout':
+        logout();
+        navigate('/auth/login');
         break;
       default:
         break;

@@ -2,9 +2,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import SideMenu from '../components/SideMenu';
 import EditProfileForm from '../components/EditProfileForm';
+import { useAuth } from '../../../hooks/useAuth';
 
 const EditProfilePage: React.FC = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const handleMenuClick = (item: string) => {
     switch (item) {
@@ -22,6 +24,10 @@ const EditProfilePage: React.FC = () => {
         break;
       case 'settings':
         navigate('/profile/settings');
+        break;
+      case 'logout':
+        logout();
+        navigate('/auth/login');
         break;
       default:
         break;

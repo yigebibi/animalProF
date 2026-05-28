@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 interface SideMenuProps {
   activeItem?: string;
@@ -92,18 +92,18 @@ const SideMenu: React.FC<SideMenuProps> = ({ activeItem, onItemClick }) => {
   ];
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 h-full">
+    <div className="w-64 bg-white border-r border-gray-200 h-full flex flex-col justify-between">
       <div className="p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-6">个人中心</h2>
         <nav className="space-y-2">
           {menuItems.map((item) => (
-            <NavLink
+            <Link
               key={item.key}
               to={item.path}
               onClick={() => onItemClick?.(item.key)}
-              className={({ isActive }) =>
+              className={
                 `flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
+                  activeItem === item.key
                     ? 'bg-purple-50 text-purple-700 border border-purple-200'
                     : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                 }`
@@ -111,13 +111,16 @@ const SideMenu: React.FC<SideMenuProps> = ({ activeItem, onItemClick }) => {
             >
               {item.icon}
               <span className="ml-3">{item.label}</span>
-            </NavLink>
+            </Link>
           ))}
         </nav>
       </div>
 
-      <div className="absolute bottom-6 left-6 right-6">
-        <button className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
+      <div className="p-6 pt-0">
+        <button
+          onClick={() => onItemClick?.('logout')}
+          className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+        >
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
