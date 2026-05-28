@@ -19,6 +19,9 @@ model User {
   gender       Int        @default(0) // 0: unknown, 1: male, 2: female
   birthday     DateTime?
   city         String?
+  notificationSettings Json?
+  privacySettings      Json?
+  accountSecuritySettings Json?
   role         Int        @default(0) // 0: normal user, 1: admin
   status       Int        @default(1) // 1: active, 0: disabled
   createdAt    DateTime   @default(now())

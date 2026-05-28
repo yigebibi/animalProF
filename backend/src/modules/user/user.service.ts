@@ -1,7 +1,29 @@
 import { Injectable, NotFoundException, ConflictException, UnauthorizedException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
-import { UpdateUserDto, ChangePasswordDto } from './dto';
+import { UpdateUserDto, ChangePasswordDto, UpdateUserSettingsDto } from './dto';
 import * as bcrypt from 'bcrypt';
+
+const DEFAULT_NOTIFICATION_SETTINGS = {
+  pushNotifications: true,
+  emailNotifications: true,
+  commentNotifications: true,
+  likeNotifications: true,
+  followNotifications: true,
+};
+
+const DEFAULT_PRIVACY_SETTINGS = {
+  publicProfile: true,
+  allowComments: true,
+  allowLikes: true,
+  allowFollows: true,
+};
+
+const DEFAULT_ACCOUNT_SECURITY_SETTINGS = {
+  emailVerified: true,
+  phoneVerified: false,
+  twoFactorEnabled: false,
+};
 
 @Injectable()
 export class UserService {
@@ -94,6 +116,84 @@ export class UserService {
     });
 
     return { message: '密码修改成功' };
+  }
+
+  async getSettings(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        email: true,
+        notificationSettings: true,
+        privacySettings: true,
+        accountSecuritySettings: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('用户不存在');
+    }
+
+    return {
+      notificationSettings: (user.notificationSettings as object) || DEFAULT_NOTIFICATION_SETTINGS,
+      privacySettings: (user.privacySettings as object) || DEFAULT_PRIVACY_SETTINGS,
+      accountSecurity:
+        (user.accountSecuritySettings as object) || {
+          ...DEFAULT_ACCOUNT_SECURITY_SETTINGS,
+          emailVerified: !!user.email,
+        },
+    };
+  }
+
+  async updateSettings(userId: number, updateUserSettingsDto: UpdateUserSettingsDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('用户不存在');
+    }
+
+    const settings = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        notificationSettings: updateUserSettingsDto.notificationSettings as unknown as Prisma.InputJsonValue,
+        privacySettings: updateUserSettingsDto.privacySettings as unknown as Prisma.InputJsonValue,
+        accountSecuritySettings: {
+          ...updateUserSettingsDto.accountSecurity,
+          emailVerified: !!user.email,
+        } as Prisma.InputJsonValue,
+      },
+      select: {
+        notificationSettings: true,
+        privacySettings: true,
+        accountSecuritySettings: true,
+      },
+    });
+
+    return {
+      notificationSettings: settings.notificationSettings,
+      privacySettings: settings.privacySettings,
+      accountSecurity: settings.accountSecuritySettings,
+    };
+  }
+
+  async deleteAccount(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('用户不存在');
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { status: 0 },
+    });
+
+    return { message: '账户已删除' };
   }
 
   async uploadAvatar(userId: number, avatarUrl: string) {

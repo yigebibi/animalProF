@@ -3,6 +3,7 @@ import {
   Get,
   Put,
   Post,
+  Delete,
   Body,
   Param,
   UseGuards,
@@ -12,15 +13,19 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { UserService } from './user.service';
-import { UpdateUserDto, ChangePasswordDto } from './dto';
+import { UpdateUserDto, ChangePasswordDto, UpdateUserSettingsDto } from './dto';
 import { JwtAuthGuard } from '../../common/guards/auth.guard';
 import { User } from '../../common/decorators/user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
+import { FileService } from '../file/file.service';
 
 @ApiTags('users')
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly fileService: FileService,
+  ) {}
 
   @Get('profile')
   @UseGuards(JwtAuthGuard)
@@ -46,6 +51,30 @@ export class UserController {
     return this.userService.changePassword(userId, changePasswordDto);
   }
 
+  @Get('settings')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '获取用户设置' })
+  getSettings(@User('userId') userId: number) {
+    return this.userService.getSettings(userId);
+  }
+
+  @Put('settings')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '更新用户设置' })
+  updateSettings(@User('userId') userId: number, @Body() updateUserSettingsDto: UpdateUserSettingsDto) {
+    return this.userService.updateSettings(userId, updateUserSettingsDto);
+  }
+
+  @Delete('account')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '删除当前账户' })
+  deleteAccount(@User('userId') userId: number) {
+    return this.userService.deleteAccount(userId);
+  }
+
   @Post('upload-avatar')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
@@ -63,9 +92,9 @@ export class UserController {
     },
   })
   @ApiOperation({ summary: '上传头像' })
-  uploadAvatar(@User('userId') userId: number, @UploadedFile() file: Express.Multer.File) {
-    // 这里会在 File 模块中实现，暂时返回一个示例 URL
-    return this.userService.uploadAvatar(userId, `/uploads/avatar-${userId}.jpg`);
+  async uploadAvatar(@User('userId') userId: number, @UploadedFile() file: Express.Multer.File) {
+    const uploadedFile = await this.fileService.uploadFile(userId, file, 'image');
+    return this.userService.uploadAvatar(userId, uploadedFile.url);
   }
 
   @Get(':id')

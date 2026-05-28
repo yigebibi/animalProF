@@ -1,35 +1,59 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SideMenu from '../components/SideMenu';
 import { NotificationSettings, PrivacySettings, AccountSecuritySettings } from '../types/user.types';
+import { useAuth } from '../../../hooks/useAuth';
+import { useDeleteAccountMutation, useGetUserSettingsQuery, useUpdateUserSettingsMutation } from '../../../store/services/api';
+
+const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
+  pushNotifications: true,
+  emailNotifications: true,
+  commentNotifications: true,
+  likeNotifications: true,
+  followNotifications: true,
+};
+
+const DEFAULT_PRIVACY_SETTINGS: PrivacySettings = {
+  publicProfile: true,
+  allowComments: true,
+  allowLikes: true,
+  allowFollows: true,
+};
+
+const DEFAULT_ACCOUNT_SECURITY: AccountSecuritySettings = {
+  emailVerified: true,
+  phoneVerified: false,
+  twoFactorEnabled: false,
+};
 
 const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
-
-  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
-    pushNotifications: true,
-    emailNotifications: true,
-    commentNotifications: true,
-    likeNotifications: true,
-    followNotifications: true,
+  const { user, logout } = useAuth();
+  const { data: settings, isLoading } = useGetUserSettingsQuery(undefined, {
+    skip: !user,
   });
+  const [updateUserSettings] = useUpdateUserSettingsMutation();
+  const [deleteAccountMutation, { isLoading: deletingAccount }] = useDeleteAccountMutation();
 
-  const [privacySettings, setPrivacySettings] = useState<PrivacySettings>({
-    publicProfile: true,
-    allowComments: true,
-    allowLikes: true,
-    allowFollows: true,
-  });
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(DEFAULT_NOTIFICATION_SETTINGS);
 
-  const [accountSecurity, setAccountSecurity] = useState<AccountSecuritySettings>({
-    emailVerified: true,
-    phoneVerified: false,
-    twoFactorEnabled: false,
-  });
+  const [privacySettings, setPrivacySettings] = useState<PrivacySettings>(DEFAULT_PRIVACY_SETTINGS);
+
+  const [accountSecurity, setAccountSecurity] = useState<AccountSecuritySettings>(DEFAULT_ACCOUNT_SECURITY);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!settings) {
+      return;
+    }
+
+    setNotificationSettings(settings.notificationSettings || DEFAULT_NOTIFICATION_SETTINGS);
+    setPrivacySettings(settings.privacySettings || DEFAULT_PRIVACY_SETTINGS);
+    setAccountSecurity(settings.accountSecurity || DEFAULT_ACCOUNT_SECURITY);
+  }, [settings]);
 
   const handleMenuClick = (item: string) => {
     switch (item) {
@@ -54,10 +78,18 @@ const SettingsPage: React.FC = () => {
   };
 
   const handleSave = async () => {
+    if (!user) {
+      return;
+    }
+
     setSaving(true);
     try {
-      // TODO: 调用 API 保存设置
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await updateUserSettings({
+          notificationSettings,
+          privacySettings,
+          accountSecurity,
+      }).unwrap();
+
       setSuccessMessage('设置保存成功！');
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
@@ -67,11 +99,25 @@ const SettingsPage: React.FC = () => {
     }
   };
 
-  const handleDeleteAccount = () => {
-    // TODO: 实现账户删除功能
-    console.log('Deleting account...');
-    setShowDeleteConfirm(false);
+  const handleDeleteAccount = async () => {
+    try {
+      await deleteAccountMutation().unwrap();
+      logout();
+      setShowDeleteConfirm(false);
+      navigate('/auth/login');
+    } catch (err) {
+      console.error('Failed to delete account:', err);
+      alert('删除账户失败，请稍后重试');
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-purple-500 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -378,7 +424,8 @@ const SettingsPage: React.FC = () => {
                     </div>
                     <button
                       onClick={() => setShowDeleteConfirm(true)}
-                      className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 font-medium transition-colors"
+                      disabled={deletingAccount}
+                      className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       删除账户
                     </button>
@@ -412,15 +459,17 @@ const SettingsPage: React.FC = () => {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
+                disabled={deletingAccount}
                 className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
               >
                 取消
               </button>
               <button
                 onClick={handleDeleteAccount}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                disabled={deletingAccount}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                确认删除
+                {deletingAccount ? '删除中...' : '确认删除'}
               </button>
             </div>
           </div>

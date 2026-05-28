@@ -4,10 +4,12 @@ import SideMenu from '../components/SideMenu';
 import UserProfileCard from '../components/UserProfileCard';
 import { useAuth } from '../../../hooks/useAuth';
 import { UserStats } from '../types/user.types';
+import { useUploadAvatarMutation } from '../../../store/services/api';
 
 const ProfilePage: React.FC = () => {
   const { user, logout, isLoading } = useAuth();
   const navigate = useNavigate();
+  const [uploadAvatar] = useUploadAvatarMutation();
 
   const [stats, setStats] = useState<UserStats>({
     petCount: 0,
@@ -69,8 +71,14 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleAvatarUpload = async (file: File) => {
-    console.log('Avatar upload:', file);
-    // TODO: 实现头像上传功能
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      await uploadAvatar(formData).unwrap();
+    } catch (err) {
+      console.error('Failed to upload avatar:', err);
+      alert('头像上传失败，请稍后重试');
+    }
   };
 
   if (isLoading) {

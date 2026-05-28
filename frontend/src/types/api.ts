@@ -66,6 +66,35 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
+export interface NotificationSettings {
+  pushNotifications: boolean;
+  emailNotifications: boolean;
+  commentNotifications: boolean;
+  likeNotifications: boolean;
+  followNotifications: boolean;
+}
+
+export interface PrivacySettings {
+  publicProfile: boolean;
+  allowComments: boolean;
+  allowLikes: boolean;
+  allowFollows: boolean;
+}
+
+export interface AccountSecuritySettings {
+  emailVerified: boolean;
+  phoneVerified: boolean;
+  twoFactorEnabled: boolean;
+}
+
+export interface UserSettingsResponse {
+  notificationSettings: NotificationSettings;
+  privacySettings: PrivacySettings;
+  accountSecurity: AccountSecuritySettings;
+}
+
+export interface UpdateUserSettingsRequest extends UserSettingsResponse {}
+
 // Pet
 export interface CreatePetRequest {
   name: string;

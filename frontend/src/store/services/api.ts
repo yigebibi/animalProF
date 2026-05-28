@@ -7,6 +7,8 @@ import {
   RegisterResponseData,
   UpdateProfileRequest,
   ChangePasswordRequest,
+  UserSettingsResponse,
+  UpdateUserSettingsRequest,
   CreatePetRequest,
   UpdatePetRequest,
   GetPostsParams,
@@ -174,6 +176,7 @@ export const api = createApi({
         body: formData,
       }),
       invalidatesTags: ['User'],
+      transformResponse: (response: any) => unwrapResponse<{ avatarUrl: string }>(response, '上传头像失败'),
     }),
     changePassword: builder.mutation<void, ChangePasswordRequest>({
       query: (data) => ({
@@ -181,6 +184,27 @@ export const api = createApi({
         method: 'POST',
         body: data,
       }),
+    }),
+    getUserSettings: builder.query<UserSettingsResponse, void>({
+      query: () => '/users/settings',
+      providesTags: ['User'],
+      transformResponse: (response: any) => unwrapResponse<UserSettingsResponse>(response, '获取用户设置失败'),
+    }),
+    updateUserSettings: builder.mutation<UserSettingsResponse, UpdateUserSettingsRequest>({
+      query: (data) => ({
+        url: '/users/settings',
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: ['User'],
+      transformResponse: (response: any) => unwrapResponse<UserSettingsResponse>(response, '更新用户设置失败'),
+    }),
+    deleteAccount: builder.mutation<{ message: string }, void>({
+      query: () => ({
+        url: '/users/account',
+        method: 'DELETE',
+      }),
+      transformResponse: (response: any) => unwrapResponse<{ message: string }>(response, '删除账户失败'),
     }),
     getUserById: builder.query<User, number>({
       query: (id) => `/users/${id}`,
@@ -439,6 +463,9 @@ export const {
   useUpdateProfileMutation,
   useUploadAvatarMutation,
   useChangePasswordMutation,
+  useGetUserSettingsQuery,
+  useUpdateUserSettingsMutation,
+  useDeleteAccountMutation,
   useGetUserByIdQuery,
   useGetPetsQuery,
   useGetPetByIdQuery,
