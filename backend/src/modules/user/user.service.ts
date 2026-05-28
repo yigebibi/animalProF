@@ -57,6 +57,77 @@ export class UserService {
     return this.findOne(userId);
   }
 
+  async getProfileStats(userId: number) {
+    const [petCount, postCount, favoriteCount, postLikes, commentLikes] = await Promise.all([
+      this.prisma.pet.count({
+        where: { userId, isActive: true },
+      }),
+      this.prisma.post.count({
+        where: { userId, status: { not: -1 } },
+      }),
+      this.prisma.favorite.count({
+        where: { userId },
+      }),
+      this.prisma.post.aggregate({
+        where: { userId, status: { not: -1 } },
+        _sum: { likeCount: true },
+      }),
+      this.prisma.comment.aggregate({
+        where: { userId, status: 1 },
+        _sum: { likeCount: true },
+      }),
+    ]);
+
+    return {
+      petCount,
+      postCount,
+      favoriteCount,
+      likeCount: (postLikes._sum.likeCount || 0) + (commentLikes._sum.likeCount || 0),
+    };
+  }
+
+  async getProfileActivities(userId: number) {
+    const [posts, pets] = await Promise.all([
+      this.prisma.post.findMany({
+        where: { userId, status: { not: -1 } },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          title: true,
+          createdAt: true,
+        },
+      }),
+      this.prisma.pet.findMany({
+        where: { userId, isActive: true },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          name: true,
+          createdAt: true,
+        },
+      }),
+    ]);
+
+    return [
+      ...posts.map((post) => ({
+        id: `post-${post.id}`,
+        type: 'post',
+        title: post.title,
+        createdAt: post.createdAt,
+      })),
+      ...pets.map((pet) => ({
+        id: `pet-${pet.id}`,
+        type: 'pet',
+        title: pet.name,
+        createdAt: pet.createdAt,
+      })),
+    ]
+      .sort((first, second) => second.createdAt.getTime() - first.createdAt.getTime())
+      .slice(0, 6);
+  }
+
   async update(userId: number, updateUserDto: UpdateUserDto) {
     // 检查用户名是否重复
     if (updateUserDto.username) {

@@ -4,12 +4,18 @@ import SideMenu from '../components/SideMenu';
 import UserProfileCard from '../components/UserProfileCard';
 import { useAuth } from '../../../hooks/useAuth';
 import { UserStats } from '../types/user.types';
-import { useUploadAvatarMutation } from '../../../store/services/api';
+import { useGetProfileActivitiesQuery, useGetProfileStatsQuery, useUploadAvatarMutation } from '../../../store/services/api';
 
 const ProfilePage: React.FC = () => {
   const { user, logout, isLoading } = useAuth();
   const navigate = useNavigate();
   const [uploadAvatar] = useUploadAvatarMutation();
+  const { data: statsData } = useGetProfileStatsQuery(undefined, {
+    skip: !user,
+  });
+  const { data: activities = [] } = useGetProfileActivitiesQuery(undefined, {
+    skip: !user,
+  });
 
   const [stats, setStats] = useState<UserStats>({
     petCount: 0,
@@ -19,20 +25,10 @@ const ProfilePage: React.FC = () => {
   });
 
   useEffect(() => {
-    // 模拟获取用户统计数据
-    const fetchStats = async () => {
-      // 这里应该调用 API 获取用户的宠物数、帖子数、收藏数和获赞数
-      // 暂时使用模拟数据
-      setStats({
-        petCount: 2,
-        postCount: 15,
-        favoriteCount: 25,
-        likeCount: 120,
-      });
-    };
-
-    fetchStats();
-  }, []);
+    if (statsData) {
+      setStats(statsData);
+    }
+  }, [statsData]);
 
   const handleMenuClick = (item: string) => {
     switch (item) {
@@ -68,6 +64,21 @@ const ProfilePage: React.FC = () => {
 
   const handleChangePasswordClick = () => {
     navigate('/profile/change-password');
+  };
+
+  const formatRelativeTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return '刚刚';
+    if (diffMins < 60) return `${diffMins}分钟前`;
+    if (diffHours < 24) return `${diffHours}小时前`;
+    if (diffDays < 7) return `${diffDays}天前`;
+    return date.toLocaleDateString('zh-CN');
   };
 
   const handleAvatarUpload = async (file: File) => {
@@ -138,54 +149,32 @@ const ProfilePage: React.FC = () => {
               <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">最近活动</h2>
                 <div className="space-y-4">
-                  {/* 这里应该显示用户的最近活动 */}
-                  <div className="flex items-center p-3 border rounded-lg hover:bg-gray-50">
-                    <div className="flex-shrink-0">
-                      <svg
-                        className="w-6 h-6 text-purple-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        />
-                      </svg>
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm text-gray-900">
-                        <span className="font-medium">您</span> 发布了新帖子
-                      </p>
-                      <p className="text-sm text-gray-500">2小时前</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center p-3 border rounded-lg hover:bg-gray-50">
-                    <div className="flex-shrink-0">
-                      <svg
-                        className="w-6 h-6 text-green-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
-                        />
-                      </svg>
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm text-gray-900">
-                        <span className="font-medium">您</span> 发布了新宠物
-                      </p>
-                      <p className="text-sm text-gray-500">1天前</p>
-                    </div>
-                  </div>
+                  {activities.length === 0 ? (
+                    <div className="text-sm text-gray-500">还没有最近活动</div>
+                  ) : (
+                    activities.map((activity) => (
+                      <div key={activity.id} className="flex items-center p-3 border rounded-lg hover:bg-gray-50">
+                        <div className="flex-shrink-0">
+                          {activity.type === 'post' ? (
+                            <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          ) : (
+                            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                            </svg>
+                          )}
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-sm text-gray-900">
+                            <span className="font-medium">您</span>
+                            {activity.type === 'post' ? ` 发布了新帖子《${activity.title}》` : ` 添加了宠物「${activity.title}」`}
+                          </p>
+                          <p className="text-sm text-gray-500">{formatRelativeTime(activity.createdAt)}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
 

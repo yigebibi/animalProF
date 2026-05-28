@@ -5,16 +5,27 @@ import { Post } from '../../types/common';
 import { HomePostsSkeleton } from '../../components/Common/Skeleton';
 
 const CATEGORIES = [
-  { name: '🐶 狗狗', count: 1234, color: 'from-amber-500', category: 'dog' },
-  { name: '🐱 猫咪', count: 987, color: 'from-purple-500', category: 'cat' },
-  { name: '🐦 鸟类', count: 456, color: 'from-blue-500', category: 'bird' },
-  { name: '🐠 水族', count: 321, color: 'from-teal-500', category: 'fish' },
+  { name: '✨ 综合', color: 'from-amber-500', category: 'general' },
+  { name: '📸 分享', color: 'from-purple-500', category: 'share' },
+  { name: '🆘 求助', color: 'from-blue-500', category: 'help' },
+  { name: '💬 讨论', color: 'from-teal-500', category: 'discussion' },
 ];
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { data: latestData, isLoading: latestLoading } = useGetPostsQuery({ page: 1, limit: 6, sortBy: 'createdAt', sortOrder: 'desc' });
   const { data: hotData, isLoading: hotLoading } = useGetPostsQuery({ page: 1, limit: 3, sortBy: 'likeCount', sortOrder: 'desc' });
+  const { data: generalData } = useGetPostsQuery({ page: 1, limit: 1, category: 'general' });
+  const { data: shareData } = useGetPostsQuery({ page: 1, limit: 1, category: 'share' });
+  const { data: helpData } = useGetPostsQuery({ page: 1, limit: 1, category: 'help' });
+  const { data: discussionData } = useGetPostsQuery({ page: 1, limit: 1, category: 'discussion' });
+
+  const categoryCounts: Record<string, number> = {
+    general: generalData?.total || 0,
+    share: shareData?.total || 0,
+    help: helpData?.total || 0,
+    discussion: discussionData?.total || 0,
+  };
 
   const formatRelativeDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -138,7 +149,7 @@ const HomePage: React.FC = () => {
                 onClick={() => navigate(`/posts?category=${category.category}`)}
               >
                 <div className="text-2xl font-bold">{category.name}</div>
-                <div className="text-white/80 mt-2">{category.count} 篇帖子</div>
+                <div className="text-white/80 mt-2">{categoryCounts[category.category]} 篇帖子</div>
               </div>
             ))}
           </div>

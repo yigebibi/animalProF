@@ -16,10 +16,10 @@ export class SearchController {
   @Public()
   @ApiOperation({ summary: '搜索' })
   @ApiQuery({ name: 'q', required: true, description: '搜索关键词' })
-  @ApiQuery({ name: 'type', required: false, description: '搜索类型 posts/users/tags' })
+  @ApiQuery({ name: 'type', required: false, description: '搜索类型 post/user/tag/posts/users/tags' })
   search(
     @Query('q') query: string,
-    @Query('type') type?: 'posts' | 'users' | 'tags',
+    @Query('type') type?: 'post' | 'user' | 'tag' | 'posts' | 'users' | 'tags',
   ) {
     return this.searchService.search(query, type);
   }

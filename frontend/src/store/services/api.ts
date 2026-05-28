@@ -9,6 +9,8 @@ import {
   ChangePasswordRequest,
   UserSettingsResponse,
   UpdateUserSettingsRequest,
+  UserStatsResponse,
+  UserActivityResponse,
   CreatePetRequest,
   UpdatePetRequest,
   GetPostsParams,
@@ -161,6 +163,16 @@ export const api = createApi({
         };
       },
     }),
+    getProfileStats: builder.query<UserStatsResponse, void>({
+      query: () => '/users/profile/stats',
+      providesTags: ['User'],
+      transformResponse: (response: any) => unwrapResponse<UserStatsResponse>(response, '获取用户统计失败'),
+    }),
+    getProfileActivities: builder.query<UserActivityResponse[], void>({
+      query: () => '/users/profile/activities',
+      providesTags: ['User'],
+      transformResponse: (response: any) => unwrapResponse<UserActivityResponse[]>(response, '获取最近活动失败'),
+    }),
     updateProfile: builder.mutation<User, UpdateProfileRequest>({
       query: (data) => ({
         url: '/users/profile',
@@ -208,6 +220,7 @@ export const api = createApi({
     }),
     getUserById: builder.query<User, number>({
       query: (id) => `/users/${id}`,
+      transformResponse: (response: any) => unwrapResponse<User>(response, '获取用户详情失败'),
     }),
 
     // Pet
@@ -460,6 +473,8 @@ export const {
   useForgotPasswordMutation,
   useResetPasswordMutation,
   useGetProfileQuery,
+  useGetProfileStatsQuery,
+  useGetProfileActivitiesQuery,
   useUpdateProfileMutation,
   useUploadAvatarMutation,
   useChangePasswordMutation,

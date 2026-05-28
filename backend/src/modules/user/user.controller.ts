@@ -35,6 +35,22 @@ export class UserController {
     return this.userService.findProfile(userId);
   }
 
+  @Get('profile/stats')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '获取当前用户统计信息' })
+  getProfileStats(@User('userId') userId: number) {
+    return this.userService.getProfileStats(userId);
+  }
+
+  @Get('profile/activities')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '获取当前用户最近活动' })
+  getProfileActivities(@User('userId') userId: number) {
+    return this.userService.getProfileActivities(userId);
+  }
+
   @Put('profile')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

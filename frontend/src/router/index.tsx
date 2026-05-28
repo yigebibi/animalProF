@@ -9,6 +9,10 @@ const PostListPage = React.lazy(() => import('../features/postList'));
 const PostDetailPage = React.lazy(() => import('../features/postDetail'));
 const PostCreatePage = React.lazy(() => import('../features/postCreate'));
 const SearchPage = React.lazy(() => import('../features/search'));
+const AboutPage = React.lazy(() => import('../features/info/pages/AboutPage'));
+const ContactPage = React.lazy(() => import('../features/info/pages/ContactPage'));
+const TermsPage = React.lazy(() => import('../features/info/pages/TermsPage'));
+const PrivacyPage = React.lazy(() => import('../features/info/pages/PrivacyPage'));
 
 const LoginPage = React.lazy(() => import('../features/auth/pages/LoginPage'));
 const RegisterPage = React.lazy(() => import('../features/auth/pages/RegisterPage'));
@@ -22,6 +26,7 @@ const SettingsPage = React.lazy(() => import('../features/user/pages/SettingsPag
 const MyPetsPage = React.lazy(() => import('../features/user/pages/MyPetsPage'));
 const MyPostsPage = React.lazy(() => import('../features/user/pages/MyPostsPage'));
 const MyFavoritesPage = React.lazy(() => import('../features/user/pages/MyFavoritesPage'));
+const UserDetailPage = React.lazy(() => import('../features/user/pages/UserDetailPage'));
 
 const SuspenseFallback = ({ children }: { children: React.ReactNode }) => (
   <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
@@ -47,6 +52,11 @@ export const router = createBrowserRouter([
       { path: 'posts/create', element: <ProtectedRoute><SuspenseFallback><PostCreatePage /></SuspenseFallback></ProtectedRoute> },
       { path: 'posts/:id/edit', element: <ProtectedRoute><SuspenseFallback><PostCreatePage /></SuspenseFallback></ProtectedRoute> },
       { path: 'search', element: <SuspenseFallback><SearchPage /></SuspenseFallback> },
+      { path: 'users/:id', element: <SuspenseFallback><UserDetailPage /></SuspenseFallback> },
+      { path: 'about', element: <SuspenseFallback><AboutPage /></SuspenseFallback> },
+      { path: 'contact', element: <SuspenseFallback><ContactPage /></SuspenseFallback> },
+      { path: 'terms', element: <SuspenseFallback><TermsPage /></SuspenseFallback> },
+      { path: 'privacy', element: <SuspenseFallback><PrivacyPage /></SuspenseFallback> },
       { path: 'profile', element: <ProtectedRoute><SuspenseFallback><ProfilePage /></SuspenseFallback></ProtectedRoute> },
       { path: 'profile/edit', element: <ProtectedRoute><SuspenseFallback><EditProfilePage /></SuspenseFallback></ProtectedRoute> },
       { path: 'profile/change-password', element: <ProtectedRoute><SuspenseFallback><ChangePasswordPage /></SuspenseFallback></ProtectedRoute> },

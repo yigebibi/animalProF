@@ -95,6 +95,20 @@ export interface UserSettingsResponse {
 
 export interface UpdateUserSettingsRequest extends UserSettingsResponse {}
 
+export interface UserStatsResponse {
+  petCount: number;
+  postCount: number;
+  favoriteCount: number;
+  likeCount: number;
+}
+
+export interface UserActivityResponse {
+  id: string;
+  type: 'post' | 'pet';
+  title: string;
+  createdAt: string;
+}
+
 // Pet
 export interface CreatePetRequest {
   name: string;
@@ -152,7 +166,7 @@ export interface UpdateCommentRequest {
 // Search
 export interface SearchRequest {
   q: string;
-  type?: 'post' | 'user' | 'tag' | 'all';
+  type?: 'post' | 'user' | 'tag' | 'posts' | 'users' | 'tags' | 'all';
 }
 
 export interface SearchResponse {

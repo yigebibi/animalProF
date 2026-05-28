@@ -1,17 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSearchQuery } from '../../store/services/api';
 import { debounce } from '../../utils/debounce';
 import { Post, User } from '../../types/common';
 
-type SearchType = 'all' | 'post' | 'user' | 'tag';
+type SearchType = 'all' | 'posts' | 'users' | 'tags';
 
 const SearchPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
 
-  const [query, setQuery] = useState(initialQuery);
   const [inputValue, setInputValue] = useState(initialQuery);
   const [searchType, setSearchType] = useState<SearchType>('all');
   const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
@@ -41,7 +40,6 @@ const SearchPage: React.FC = () => {
 
   const handleClear = () => {
     setInputValue('');
-    setQuery('');
     setDebouncedQuery('');
   };
 
@@ -162,7 +160,7 @@ const SearchPage: React.FC = () => {
 
           {/* Search Type Tabs */}
           <div className="flex gap-2 mt-4">
-            {(['all', 'post', 'user', 'tag'] as SearchType[]).map((type) => (
+            {(['all', 'posts', 'users', 'tags'] as SearchType[]).map((type) => (
               <button
                 key={type}
                 onClick={() => setSearchType(type)}
@@ -172,7 +170,7 @@ const SearchPage: React.FC = () => {
                     : 'bg-white text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                {type === 'all' ? '全部' : type === 'post' ? '帖子' : type === 'user' ? '用户' : '标签'}
+                {type === 'all' ? '全部' : type === 'posts' ? '帖子' : type === 'users' ? '用户' : '标签'}
               </button>
             ))}
           </div>
@@ -208,7 +206,7 @@ const SearchPage: React.FC = () => {
         {!isLoading && debouncedQuery.trim() && data && (
           <>
             {/* Posts Results */}
-            {data.posts && data.posts.length > 0 && (searchType === 'all' || searchType === 'post') && (
+            {data.posts && data.posts.length > 0 && (searchType === 'all' || searchType === 'posts') && (
               <div className="mb-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">
                   帖子 ({data.posts.length})
@@ -218,7 +216,7 @@ const SearchPage: React.FC = () => {
                     <SearchResultCard key={post.id} post={post} />
                   ))}
                 </div>
-                {data.posts.length > 6 && searchType === 'post' && (
+                {data.posts.length > 6 && searchType === 'posts' && (
                   <button
                     onClick={() => navigate(`/posts?search=${encodeURIComponent(debouncedQuery)}`)}
                     className="mt-4 text-purple-600 hover:text-purple-700 font-medium"
@@ -230,7 +228,7 @@ const SearchPage: React.FC = () => {
             )}
 
             {/* Users Results */}
-            {data.users && data.users.length > 0 && (searchType === 'all' || searchType === 'user') && (
+            {data.users && data.users.length > 0 && (searchType === 'all' || searchType === 'users') && (
               <div className="mb-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">
                   用户 ({data.users.length})
@@ -244,7 +242,7 @@ const SearchPage: React.FC = () => {
             )}
 
             {/* Tags Results */}
-            {data.tags && data.tags.length > 0 && (searchType === 'all' || searchType === 'tag') && (
+            {data.tags && data.tags.length > 0 && (searchType === 'all' || searchType === 'tags') && (
               <div className="mb-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">
                   标签 ({data.tags.length})
