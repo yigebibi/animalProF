@@ -42,4 +42,10 @@ export class PostsQueryDto {
   @IsString()
   @IsOptional()
   sortOrder?: 'asc' | 'desc' = 'desc';
+
+  @ApiPropertyOptional({ description: '用户 ID（筛选某用户的帖子）' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  userId?: number;
 }

@@ -36,6 +36,7 @@ services:
       timeout: 5s
       retries: 5
 
+  # RabbitMQ — 预留消息队列，暂未在后端代码中使用
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: petforum-mq
@@ -79,7 +80,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+  # Redis — 预留缓存服务，暂未在后端代码中使用
+  redis:
         condition: service_healthy
     networks:
       - petforum-network

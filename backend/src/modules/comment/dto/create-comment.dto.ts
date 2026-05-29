@@ -1,4 +1,4 @@
-import { IsString, IsInt, MinLength } from 'class-validator';
+import { IsString, IsInt, IsOptional, MinLength, Min } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateCommentDto {
@@ -8,16 +8,8 @@ export class CreateCommentDto {
   content: string;
 
   @ApiPropertyOptional({ description: '父评论 ID' })
+  @IsOptional()
   @IsInt()
-  @IsInt()
-  @MinLength(1)
-  @ApiPropertyOptional({ description: '父评论 ID' })
-  @IsInt()
-  @ApiPropertyOptional({ description: '父评论 ID' })
-  @IsInt()
-  @ApiPropertyOptional({ description: '父评论 ID' })
-  @IsInt()
-  @ApiPropertyOptional({ description: '父评论 ID' })
-  @IsInt()
+  @Min(1)
   parentId?: number;
 }

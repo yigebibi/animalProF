@@ -7,6 +7,9 @@ import {
   useGetCommentsQuery,
   useCreateCommentMutation,
   useDeleteCommentMutation,
+  useUpdateCommentMutation,
+  useLikeCommentMutation,
+  useUnlikeCommentMutation,
   useLikePostMutation,
   useUnlikePostMutation,
   useFavoritePostMutation,
@@ -14,6 +17,7 @@ import {
 } from '../../store/services/api';
 import { useAuth } from '../../hooks/useAuth';
 import { Comment } from '../../types/common';
+import { formatRelativeDate } from '../../utils/date';
 
 const PostDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -39,10 +43,13 @@ const PostDetailPage: React.FC = () => {
 
   const [createComment, { isLoading: creatingComment }] = useCreateCommentMutation();
   const [deleteComment] = useDeleteCommentMutation();
+  const [updateComment] = useUpdateCommentMutation();
   const [likePost] = useLikePostMutation();
   const [unlikePost] = useUnlikePostMutation();
   const [favoritePost] = useFavoritePostMutation();
   const [unfavoritePost] = useUnfavoritePostMutation();
+  const [likeComment] = useLikeCommentMutation();
+  const [unlikeComment] = useUnlikeCommentMutation();
   const isLiked = likeStatus?.isLiked ?? false;
   const isFavorited = favoriteStatus?.isFavorited ?? false;
 
@@ -108,7 +115,31 @@ const PostDetailPage: React.FC = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const handleUpdateComment = async (commentId: number, content: string) => {
+    try {
+      await updateComment({ id: commentId, content }).unwrap();
+    } catch (err) {
+      console.error('Failed to update comment:', err);
+    }
+  };
+
+  const handleLikeComment = async (commentId: number) => {
+    try {
+      await likeComment(commentId).unwrap();
+    } catch (err) {
+      console.error('Failed to like comment:', err);
+    }
+  };
+
+  const handleUnlikeComment = async (commentId: number) => {
+    try {
+      await unlikeComment(commentId).unwrap();
+    } catch (err) {
+      console.error('Failed to unlike comment:', err);
+    }
+  };
+
+  const formatDateFull = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('zh-CN', {
       year: 'numeric',
@@ -117,21 +148,6 @@ const PostDetailPage: React.FC = () => {
       hour: '2-digit',
       minute: '2-digit',
     });
-  };
-
-  const formatRelativeDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return '刚刚';
-    if (diffMins < 60) return `${diffMins}分钟前`;
-    if (diffHours < 24) return `${diffHours}小时前`;
-    if (diffDays < 7) return `${diffDays}天前`;
-    return date.toLocaleDateString('zh-CN');
   };
 
   if (postLoading) {
@@ -212,7 +228,7 @@ const PostDetailPage: React.FC = () => {
                     {post.user?.nickname || post.user?.username || '用户'}
                   </div>
                   <div className="text-sm text-[color:var(--ink-soft)]">
-                    {formatDate(post.createdAt)}
+                    {formatDateFull(post.createdAt)}
                   </div>
                 </div>
               </div>
@@ -353,7 +369,11 @@ const PostDetailPage: React.FC = () => {
                   currentUserId={user?.id}
                   onReply={() => setReplyingTo(comment.id)}
                   onDelete={handleDeleteComment}
+                  onUpdate={handleUpdateComment}
+                  onLike={handleLikeComment}
+                  onUnlike={handleUnlikeComment}
                   formatRelativeDate={formatRelativeDate}
+                  updatingCommentId={null}
                 />
               ))}
             </div>
@@ -379,7 +399,11 @@ interface CommentItemProps {
   currentUserId?: number;
   onReply: () => void;
   onDelete: (id: number) => void;
+  onUpdate: (id: number, content: string) => void;
+  onLike: (id: number) => void;
+  onUnlike: (id: number) => void;
   formatRelativeDate: (date: string) => string;
+  updatingCommentId?: number | null;
 }
 
 const CommentItem: React.FC<CommentItemProps> = ({
@@ -388,8 +412,38 @@ const CommentItem: React.FC<CommentItemProps> = ({
   currentUserId,
   onReply,
   onDelete,
+  onUpdate,
+  onLike,
+  onUnlike,
   formatRelativeDate,
+  updatingCommentId,
 }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(comment.content);
+  const [isLiked, setIsLiked] = useState(false);
+
+  const handleSaveEdit = () => {
+    if (editContent.trim()) {
+      onUpdate(comment.id, editContent.trim());
+      setIsEditing(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditContent(comment.content);
+    setIsEditing(false);
+  };
+
+  const handleToggleLike = () => {
+    if (isLiked) {
+      onUnlike(comment.id);
+      setIsLiked(false);
+    } else {
+      onLike(comment.id);
+      setIsLiked(true);
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm p-4">
       <div className="flex items-start gap-3">
@@ -407,23 +461,68 @@ const CommentItem: React.FC<CommentItemProps> = ({
               {formatRelativeDate(comment.createdAt)}
             </span>
           </div>
-          <p className="mt-1 text-gray-700">{comment.content}</p>
-          <div className="flex items-center gap-4 mt-2">
-            <button
-              onClick={onReply}
-              className="text-sm text-gray-500 hover:text-purple-600"
-            >
-              回复
-            </button>
-            {currentUserId === comment.userId && (
+          {isEditing ? (
+            <div className="mt-2">
+              <textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
+                rows={3}
+              />
+              <div className="mt-2 flex justify-end gap-2">
+                <button
+                  onClick={handleCancelEdit}
+                  className="rounded-lg px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={updatingCommentId === comment.id || !editContent.trim()}
+                  className="rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-purple-700 disabled:opacity-50"
+                >
+                  {updatingCommentId === comment.id ? '保存中...' : '保存'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-1 text-gray-700">{comment.content}</p>
+          )}
+          {!isEditing && (
+            <div className="flex items-center gap-4 mt-2">
               <button
-                onClick={() => onDelete(comment.id)}
-                className="text-sm text-gray-500 hover:text-red-600"
+                onClick={onReply}
+                className="text-sm text-gray-500 hover:text-purple-600"
               >
-                删除
+                回复
               </button>
-            )}
-          </div>
+              <button
+                onClick={handleToggleLike}
+                className={`flex items-center gap-1 text-sm ${isLiked ? 'text-rose-500' : 'text-gray-500 hover:text-rose-500'}`}
+              >
+                <svg className="w-4 h-4" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                {comment.likeCount > 0 && comment.likeCount}
+              </button>
+              {currentUserId === comment.userId && (
+                <>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="text-sm text-gray-500 hover:text-purple-600"
+                  >
+                    编辑
+                  </button>
+                  <button
+                    onClick={() => onDelete(comment.id)}
+                    className="text-sm text-gray-500 hover:text-red-600"
+                  >
+                    删除
+                  </button>
+                </>
+              )}
+            </div>
+          )}
 
           {/* Replies */}
           {replies.length > 0 && (
@@ -445,14 +544,29 @@ const CommentItem: React.FC<CommentItemProps> = ({
                       </span>
                     </div>
                     <p className="mt-0.5 text-gray-700 text-sm">{reply.content}</p>
-                    {currentUserId === reply.userId && (
+                    <div className="flex items-center gap-3 mt-1">
                       <button
-                        onClick={() => onDelete(reply.id)}
-                        className="text-xs text-gray-500 hover:text-red-600 mt-1"
+                        onClick={() => {
+                          onLike(reply.id);
+                        }}
+                        className="flex items-center gap-1 text-xs text-gray-400 hover:text-rose-500"
                       >
-                        删除
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        {reply.likeCount > 0 && reply.likeCount}
                       </button>
-                    )}
+                      {currentUserId === reply.userId && (
+                        <>
+                          <button
+                            onClick={() => onDelete(reply.id)}
+                            className="text-xs text-gray-400 hover:text-red-600"
+                          >
+                            删除
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}

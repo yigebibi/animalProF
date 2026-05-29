@@ -66,4 +66,28 @@ export class NotificationService {
 
     return { message: '全部已读' };
   }
+
+  async deleteNotification(userId: number, notificationId: number) {
+    const notification = await this.prisma.notification.findFirst({
+      where: { id: notificationId, userId },
+    });
+
+    if (!notification) {
+      throw new NotFoundException('通知不存在');
+    }
+
+    await this.prisma.notification.delete({
+      where: { id: notificationId },
+    });
+
+    return { message: '通知已删除' };
+  }
+
+  async deleteAllNotifications(userId: number) {
+    await this.prisma.notification.deleteMany({
+      where: { userId },
+    });
+
+    return { message: '所有通知已清空' };
+  }
 }

@@ -10,14 +10,9 @@ export default defineConfig({
     },
   },
   server: {
+    host: '0.0.0.0',
     port: 3001,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      },
-    },
+    origin: 'http://172.23.239.184:3001',
   },
   build: {
     outDir: 'build',

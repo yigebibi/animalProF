@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   useGetPetsQuery,
   useAddPetMutation,
   useUpdatePetMutation,
   useDeletePetMutation,
+  useUploadFileMutation,
 } from '../../../store/services/api';
 import { Pet } from '../../../types/common';
 import SideMenu from '../components/SideMenu';
@@ -31,11 +32,15 @@ const MyPetsPage: React.FC = () => {
   const [gender, setGender] = useState(0);
   const [birthday, setBirthday] = useState('');
   const [bio, setBio] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const { data: pets, isLoading } = useGetPetsQuery();
   const [addPet, { isLoading: adding }] = useAddPetMutation();
   const [updatePet, { isLoading: updating }] = useUpdatePetMutation();
   const [deletePet, { isLoading: deleting }] = useDeletePetMutation();
+  const [uploadFile] = useUploadFileMutation();
 
   const resetForm = () => {
     setName('');
@@ -44,6 +49,8 @@ const MyPetsPage: React.FC = () => {
     setGender(0);
     setBirthday('');
     setBio('');
+    setAvatarUrl(undefined);
+    setAvatarFile(null);
     setEditingPet(null);
   };
 
@@ -60,6 +67,8 @@ const MyPetsPage: React.FC = () => {
     setGender(pet.gender);
     setBirthday(pet.birthday ? pet.birthday.split('T')[0] : '');
     setBio(pet.bio || '');
+    setAvatarUrl(pet.avatarUrl || undefined);
+    setAvatarFile(null);
     setShowModal(true);
   };
 
@@ -73,6 +82,15 @@ const MyPetsPage: React.FC = () => {
     if (!name.trim()) return;
 
     try {
+      let finalAvatarUrl = avatarUrl;
+
+      if (avatarFile) {
+        const formData = new FormData();
+        formData.append('file', avatarFile);
+        const fileResult = await uploadFile(formData).unwrap();
+        finalAvatarUrl = fileResult.url;
+      }
+
       const petData = {
         name: name.trim(),
         type,
@@ -80,6 +98,7 @@ const MyPetsPage: React.FC = () => {
         gender,
         birthday: birthday || undefined,
         bio: bio.trim() || undefined,
+        avatarUrl: finalAvatarUrl,
       };
 
       if (editingPet) {
@@ -278,6 +297,56 @@ const MyPetsPage: React.FC = () => {
               {editingPet ? '编辑宠物' : '添加宠物'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  头像（可选）
+                </label>
+                <div className="flex items-center gap-3">
+                  <img
+                    src={avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${name || 'pet'}`}
+                    alt="宠物头像"
+                    className="h-16 w-16 rounded-full border-2 border-gray-200 object-cover"
+                  />
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => avatarInputRef.current?.click()}
+                      className="rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200"
+                    >
+                      {avatarUrl ? '更换头像' : '上传头像'}
+                    </button>
+                    {avatarUrl && (
+                      <button
+                        type="button"
+                        onClick={() => { setAvatarUrl(undefined); setAvatarFile(null); }}
+                        className="ml-2 text-sm text-red-500 hover:text-red-600"
+                      >
+                        移除
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        if (file.size > 10 * 1024 * 1024) {
+                          alert('图片大小不能超过10MB');
+                          return;
+                        }
+                        setAvatarFile(file);
+                        const reader = new FileReader();
+                        reader.onloadend = () => setAvatarUrl(reader.result as string);
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   名字 <span className="text-red-500">*</span>

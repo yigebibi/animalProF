@@ -4,7 +4,6 @@ import {
   useGetFavoritesQuery,
   useUnfavoritePostMutation,
 } from '../../../store/services/api';
-import { Post } from '../../../types/common';
 import SideMenu from '../components/SideMenu';
 import { useAuth } from '../../../hooks/useAuth';
 
@@ -14,7 +13,7 @@ const MyFavoritesPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [showUnfavoriteConfirm, setShowUnfavoriteConfirm] = useState<number | null>(null);
 
-  const { data, isLoading } = useGetFavoritesQuery();
+  const { data, isLoading } = useGetFavoritesQuery({ page, limit: 10 });
   const [unfavorite, { isLoading: unfavoriting }] = useUnfavoritePostMutation();
 
   const favorites = data?.items || [];
@@ -175,9 +174,31 @@ const MyFavoritesPage: React.FC = () => {
                               </button>
                             </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
+                 </div>
+               )}
+
+              {data && Math.ceil(data.total / 10) > 1 && (
+                <div className="flex justify-center gap-2 mt-6">
+                  <button
+                    onClick={() => setPage(page - 1)}
+                    disabled={page === 1}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 text-sm"
+                  >
+                    上一页
+                  </button>
+                  <span className="px-4 py-2 text-sm">
+                    {page} / {Math.ceil(data.total / 10)}
+                  </span>
+                  <button
+                    onClick={() => setPage(page + 1)}
+                    disabled={page === Math.ceil(data.total / 10)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 text-sm"
+                  >
+                    下一页
+                  </button>
+                </div>
+              )}
+            </div>
                   ))}
                 </div>
               )}

@@ -343,8 +343,11 @@ export const api = createApi({
       }),
       invalidatesTags: (result, error, id) => [{ type: 'Post', id }],
     }),
-    getFavorites: builder.query<PaginationResponse<Post>, void>({
-      query: () => '/posts/favorites',
+    getFavorites: builder.query<PaginationResponse<Post>, { page?: number; limit?: number } | void>({
+      query: (params) => ({
+        url: '/posts/favorites',
+        params: params || {},
+      }),
       providesTags: [{ type: 'Post', id: 'FAVORITES' }],
       transformResponse: (response: any) => unwrapPaginationResponse<Post>(response, '获取收藏失败'),
     }),
@@ -415,6 +418,11 @@ export const api = createApi({
       }),
       invalidatesTags: (result, error, id) => [{ type: 'Comment', id }],
     }),
+    checkCommentLikeStatus: builder.query<{ isLiked: boolean }, number>({
+      query: (id) => `/comments/${id}/like/status`,
+      transformResponse: (response: any) => unwrapResponse<{ isLiked: boolean }>(response, '获取评论点赞状态失败'),
+      providesTags: (result, error, id) => [{ type: 'Comment', id }],
+    }),
 
     // File
     uploadFile: builder.mutation<FileInfo, FormData>({
@@ -443,6 +451,12 @@ export const api = createApi({
     // Tags
     getTags: builder.query<Tag[], void>({
       query: () => '/tags',
+      transformResponse: (response: any) => {
+        if (response && response.code === 200) {
+          return response.data;
+        }
+        throw new Error(response.message || '获取标签失败');
+      },
       providesTags: ['Tag'],
     }),
 
@@ -450,6 +464,7 @@ export const api = createApi({
     getNotifications: builder.query<PaginationResponse<Notification>, void>({
       query: () => '/notifications',
       providesTags: ['Notification'],
+      transformResponse: (response: any) => unwrapPaginationResponse<Notification>(response, '获取通知失败'),
     }),
     markAsRead: builder.mutation<void, number>({
       query: (id) => ({
@@ -462,6 +477,20 @@ export const api = createApi({
       query: () => ({
         url: '/notifications/read-all',
         method: 'PUT',
+      }),
+      invalidatesTags: ['Notification'],
+    }),
+    deleteNotification: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/notifications/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Notification'],
+    }),
+    deleteAllNotifications: builder.mutation<void, void>({
+      query: () => ({
+        url: '/notifications',
+        method: 'DELETE',
       }),
       invalidatesTags: ['Notification'],
     }),
@@ -484,7 +513,6 @@ export const {
   useDeleteAccountMutation,
   useGetUserByIdQuery,
   useGetPetsQuery,
-  useGetPetByIdQuery,
   useAddPetMutation,
   useUpdatePetMutation,
   useDeletePetMutation,
@@ -506,6 +534,7 @@ export const {
   useDeleteCommentMutation,
   useLikeCommentMutation,
   useUnlikeCommentMutation,
+  useCheckCommentLikeStatusQuery,
   useUploadFileMutation,
   useDeleteFileMutation,
   useSearchQuery,
@@ -513,4 +542,6 @@ export const {
   useGetNotificationsQuery,
   useMarkAsReadMutation,
   useMarkAllAsReadMutation,
+  useDeleteNotificationMutation,
+  useDeleteAllNotificationsMutation,
 } = api;

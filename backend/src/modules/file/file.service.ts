@@ -108,4 +108,36 @@ export class FileService {
 
     return { message: '文件已删除' };
   }
+
+  async findUserFiles(userId: number, page: number = 1, limit: number = 20) {
+    const [files, total] = await Promise.all([
+      this.prisma.file.findMany({
+        where: { userId, status: 1 },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.file.count({ where: { userId, status: 1 } }),
+    ]);
+
+    const baseUrl = this.configService.get<string>('BASE_URL') || 'http://localhost:3000';
+
+    return {
+      data: files.map((f) => ({
+        id: f.id,
+        url: `${baseUrl}/uploads${f.filePath}`,
+        fileName: f.originalName,
+        fileSize: f.fileSize.toString(),
+        mimeType: f.mimeType,
+        fileType: f.fileType,
+        createdAt: f.createdAt,
+      })),
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
 }

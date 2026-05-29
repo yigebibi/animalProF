@@ -9,6 +9,7 @@ import { CommentModule } from './modules/comment/comment.module';
 import { FileModule } from './modules/file/file.module';
 import { SearchModule } from './modules/search/search.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { TagModule } from './modules/tag/tag.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { NotificationModule } from './modules/notification/notification.module';
     FileModule,
     SearchModule,
     NotificationModule,
+    TagModule,
   ],
 })
 export class AppModule {}

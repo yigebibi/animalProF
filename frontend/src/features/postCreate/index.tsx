@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link, useParams } from 'react-router-dom';
-import { useCreatePostMutation, useGetPostByIdQuery, useGetPetsQuery, useUpdatePostMutation, useUploadFileMutation } from '../../store/services/api';
+import { useCreatePostMutation, useGetPostByIdQuery, useGetPetsQuery, useUpdatePostMutation, useUploadFileMutation, useGetTagsQuery, useDeleteFileMutation } from '../../store/services/api';
 import { useAuth } from '../../hooks/useAuth';
 
 const CATEGORIES = [
@@ -9,8 +9,6 @@ const CATEGORIES = [
   { value: 'help', label: '求助' },
   { value: 'discussion', label: '讨论' },
 ];
-
-const COMMON_TAGS = ['可爱', '日常', '求助', '经验', '搞笑', '宠物用品', '健康', '训练', '饮食', '美容'];
 
 const PostCreatePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -29,10 +27,14 @@ const PostCreatePage: React.FC = () => {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [selectedPetId, setSelectedPetId] = useState<number | undefined>(undefined);
 
+  const [coverFileId, setCoverFileId] = useState<number | null>(null);
+
   const [createPost, { isLoading: creating }] = useCreatePostMutation();
   const [updatePost, { isLoading: updating }] = useUpdatePostMutation();
   const [uploadFile, { isLoading: uploading }] = useUploadFileMutation();
+  const [deleteFile] = useDeleteFileMutation();
   const { data: pets } = useGetPetsQuery();
+  const { data: tagsData } = useGetTagsQuery();
   const { data: post, isLoading: loadingPost } = useGetPostByIdQuery(postId, {
     skip: !isEditMode || !postId,
   });
@@ -73,8 +75,12 @@ const PostCreatePage: React.FC = () => {
   };
 
   const handleRemoveImage = () => {
+    if (coverFileId) {
+      deleteFile(coverFileId).catch((err) => console.error('Failed to delete file:', err));
+    }
     setCoverImage(null);
     setCoverFile(null);
+    setCoverFileId(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -119,7 +125,10 @@ const PostCreatePage: React.FC = () => {
         const formData = new FormData();
         formData.append('file', coverFile);
         const fileResult = await uploadFile(formData).unwrap();
-        coverUrl = fileResult.url || fileResult.filePath;
+        coverUrl = fileResult.url;
+        if (fileResult.id) {
+          setCoverFileId(fileResult.id);
+        }
       }
 
       const payload = {
@@ -322,15 +331,15 @@ const PostCreatePage: React.FC = () => {
                  className="w-full rounded-2xl border border-[color:var(--line-soft)] bg-[rgba(255,250,244,0.76)] px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-purple-300 disabled:bg-gray-100"
                />
               <div className="flex flex-wrap gap-2 mt-2">
-                {COMMON_TAGS.filter((t) => !tags.includes(t)).slice(0, 5).map((tag) => (
+                {(tagsData || []).filter((t: any) => !tags.includes(t.name)).slice(0, 8).map((tag: any) => (
                   <button
-                    key={tag}
+                    key={tag.name}
                     type="button"
-                    onClick={() => handleAddTag(tag)}
+                    onClick={() => handleAddTag(tag.name)}
                     disabled={tags.length >= 5}
                      className="rounded-full border border-[color:var(--line-soft)] bg-white px-3 py-1 text-sm text-[color:var(--ink-deep)] shadow-[0_8px_18px_rgba(99,74,137,0.06)] disabled:opacity-50"
                    >
-                    + {tag}
+                    + {tag.name}
                   </button>
                 ))}
               </div>

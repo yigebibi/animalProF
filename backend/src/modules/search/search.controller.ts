@@ -3,9 +3,10 @@ import {
   Get,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { SearchService } from './search.service';
 import { Public } from '../../common/decorators/public.decorator';
+import { SearchQueryDto } from './dto';
 
 @ApiTags('search')
 @Controller('search')
@@ -15,12 +16,7 @@ export class SearchController {
   @Get()
   @Public()
   @ApiOperation({ summary: '搜索' })
-  @ApiQuery({ name: 'q', required: true, description: '搜索关键词' })
-  @ApiQuery({ name: 'type', required: false, description: '搜索类型 post/user/tag/posts/users/tags' })
-  search(
-    @Query('q') query: string,
-    @Query('type') type?: 'post' | 'user' | 'tag' | 'posts' | 'users' | 'tags',
-  ) {
-    return this.searchService.search(query, type);
+  search(@Query() query: SearchQueryDto) {
+    return this.searchService.search(query.q || '', query.type);
   }
 }

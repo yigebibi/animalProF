@@ -13,7 +13,7 @@ async function bootstrap() {
 
   // 启用 CORS
   app.enableCors({
-    origin: ['http://localhost:3001', 'https://petforum.com'],
+    origin: ['http://localhost:3001', 'http://172.23.239.184:3001', 'https://petforum.com'],
     credentials: true,
   });
 
@@ -49,7 +49,7 @@ async function bootstrap() {
   });
 
   const port = process.env.PORT || 3000;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
 
   console.log(`Application is running on: http://localhost:${port}`);
   console.log(`Swagger docs: http://localhost:${port}/api/docs`);

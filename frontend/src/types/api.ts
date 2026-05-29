@@ -132,6 +132,7 @@ export interface GetPostsParams extends PaginationParams {
   search?: string;
   sortBy?: 'createdAt' | 'likeCount' | 'viewCount' | 'commentCount';
   sortOrder?: 'asc' | 'desc';
+  userId?: number;
 }
 
 export interface CreatePostRequest {

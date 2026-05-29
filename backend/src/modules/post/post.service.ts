@@ -19,6 +19,7 @@ export class PostService {
       search,
       sortBy = 'createdAt',
       sortOrder = 'desc',
+      userId,
     } = query;
 
     const where: any = { status: 1 };
@@ -36,6 +37,10 @@ export class PostService {
         { title: { contains: search } },
         { content: { contains: search } },
       ];
+    }
+
+    if (userId) {
+      where.userId = userId;
     }
 
     const [posts, total] = await Promise.all([
@@ -139,6 +144,29 @@ export class PostService {
       throw new ForbiddenException('无权修改此帖子');
     }
 
+    if (updatePostDto.tags) {
+      const oldTags = post.tags || [];
+      const newTags = updatePostDto.tags;
+
+      const removedTags = oldTags.filter((t) => !newTags.includes(t));
+      const addedTags = newTags.filter((t) => !oldTags.includes(t));
+
+      for (const tagName of removedTags) {
+        await this.prisma.tag.updateMany({
+          where: { name: tagName, postCount: { gt: 0 } },
+          data: { postCount: { decrement: 1 } },
+        });
+      }
+
+      for (const tagName of addedTags) {
+        await this.prisma.tag.upsert({
+          where: { name: tagName },
+          create: { name: tagName, postCount: 1 },
+          update: { postCount: { increment: 1 } },
+        });
+      }
+    }
+
     return this.prisma.post.update({
       where: { id: postId },
       data: updatePostDto,
@@ -162,6 +190,15 @@ export class PostService {
 
     if (post.userId !== userId) {
       throw new ForbiddenException('无权删除此帖子');
+    }
+
+    if (post.tags && post.tags.length > 0) {
+      for (const tagName of post.tags) {
+        await this.prisma.tag.updateMany({
+          where: { name: tagName, postCount: { gt: 0 } },
+          data: { postCount: { decrement: 1 } },
+        });
+      }
     }
 
     // 软删除
@@ -296,7 +333,13 @@ export class PostService {
       },
     });
 
-    return post;
+    // 更新收藏数
+    const updatedPost = await this.prisma.post.update({
+      where: { id: postId },
+      data: { favoriteCount: { increment: 1 } },
+    });
+
+    return updatedPost;
   }
 
   async unfavoritePost(userId: number, postId: number) {
@@ -332,7 +375,13 @@ export class PostService {
       },
     });
 
-    return post;
+    // 更新收藏数
+    const updatedPost = await this.prisma.post.update({
+      where: { id: postId },
+      data: { favoriteCount: { decrement: 1 } },
+    });
+
+    return updatedPost;
   }
 
   async getFavorites(userId: number, page: number = 1, limit: number = 20) {

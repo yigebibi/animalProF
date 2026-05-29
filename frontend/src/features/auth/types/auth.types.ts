@@ -39,18 +39,6 @@ export interface ResetPasswordRequest {
   confirmPassword: string;
 }
 
-// 忘记密码请求类型
-export interface ForgotPasswordRequest {
-  email: string;
-}
-
-// 重置密码请求类型
-export interface ResetPasswordRequest {
-  token: string;
-  password: string;
-  confirmPassword: string;
-}
-
 // 验证规则类型
 export interface ValidationRules {
   email: {

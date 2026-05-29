@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
@@ -33,6 +34,17 @@ export class PetController {
   @ApiOperation({ summary: '获取宠物详情' })
   findOne(@Param('id') id: string) {
     return this.petService.findOne(+id);
+  }
+
+  @Get(':id/posts')
+  @Public()
+  @ApiOperation({ summary: '获取宠物的帖子' })
+  findPetPosts(
+    @Param('id') id: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 20,
+  ) {
+    return this.petService.findPetPosts(+id, +page, +limit);
   }
 
   @Post()

@@ -22,8 +22,8 @@ export class AuthService {
     const from = this.configService.get<string>('SMTP_FROM') || user;
 
     if (!host || !user || !pass || !from) {
-      console.log(`Password reset link for ${email}: ${resetUrl}`);
-      return;
+      console.log(`[DEV] Password reset link for ${email}: ${resetUrl}`);
+      return resetUrl;
     }
 
     const transporter = nodemailer.createTransport({
@@ -60,7 +60,7 @@ export class AuthService {
       where: { email },
     });
 
-    if (!user) {
+    if (!user || user.deletedAt) {
       throw new UnauthorizedException('用户不存在');
     }
 
@@ -149,7 +149,15 @@ export class AuthService {
 
       const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3001';
       const resetUrl = `${frontendUrl}/auth/reset-password?token=${token}`;
-      await this.sendPasswordResetEmail(user.email, resetUrl);
+      const emailResult = await this.sendPasswordResetEmail(user.email, resetUrl);
+
+      const isDev = !this.configService.get<string>('SMTP_HOST');
+      if (isDev && emailResult) {
+        return {
+          message: '如果邮箱已注册，重置密码链接已发送',
+          resetUrl: emailResult,
+        };
+      }
     }
 
     return {

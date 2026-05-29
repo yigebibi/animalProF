@@ -1,8 +1,10 @@
 import {
   Controller,
+  Get,
   Post,
   Delete,
   Param,
+  Query,
   UseGuards,
   UseInterceptors,
   UploadedFile,
@@ -18,6 +20,18 @@ import { User } from '../../common/decorators/user.decorator';
 @Controller('files')
 export class FileController {
   constructor(private readonly fileService: FileService) {}
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '获取当前用户文件列表' })
+  findUserFiles(
+    @User('userId') userId: number,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 20,
+  ) {
+    return this.fileService.findUserFiles(userId, +page, +limit);
+  }
 
   @Post('upload')
   @UseGuards(JwtAuthGuard)

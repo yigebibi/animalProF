@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Put,
+  Delete,
   Param,
   Query,
   UseGuards,
@@ -10,6 +11,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { NotificationService } from './notification.service';
 import { JwtAuthGuard } from '../../common/guards/auth.guard';
 import { User } from '../../common/decorators/user.decorator';
+import { NotificationQueryDto } from './dto';
 
 @ApiTags('notifications')
 @Controller('notifications')
@@ -22,10 +24,9 @@ export class NotificationController {
   @ApiOperation({ summary: '获取通知列表' })
   findAll(
     @User('userId') userId: number,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 20,
+    @Query() query: NotificationQueryDto,
   ) {
-    return this.notificationService.findAllByUserId(userId, page, limit);
+    return this.notificationService.findAllByUserId(userId, query.page, query.limit);
   }
 
   @Put(':id/read')
@@ -42,5 +43,21 @@ export class NotificationController {
   @ApiOperation({ summary: '标记所有通知已读' })
   markAllAsRead(@User('userId') userId: number) {
     return this.notificationService.markAllAsRead(userId);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '删除通知' })
+  deleteNotification(@User('userId') userId: number, @Param('id') id: string) {
+    return this.notificationService.deleteNotification(userId, +id);
+  }
+
+  @Delete()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '清空所有通知' })
+  deleteAllNotifications(@User('userId') userId: number) {
+    return this.notificationService.deleteAllNotifications(userId);
   }
 }

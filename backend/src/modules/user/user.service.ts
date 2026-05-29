@@ -30,8 +30,8 @@ export class UserService {
   constructor(private prisma: PrismaService) {}
 
   async findOne(id: number) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
+    const user = await this.prisma.user.findFirst({
+      where: { id, status: 1, deletedAt: null },
       select: {
         id: true,
         username: true,
@@ -399,7 +399,12 @@ export class UserService {
 
     await this.prisma.user.update({
       where: { id: userId },
-      data: { status: 0 },
+      data: {
+        status: 0,
+        deletedAt: new Date(),
+        username: `deleted_${userId}_${Date.now()}`,
+        email: `deleted_${userId}_${Date.now()}@deleted.com`,
+      },
     });
 
     return { message: '账户已删除' };

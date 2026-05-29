@@ -4,7 +4,6 @@ import {
   useGetPostsQuery,
   useDeletePostMutation,
 } from '../../../store/services/api';
-import { Post } from '../../../types/common';
 import SideMenu from '../components/SideMenu';
 import { useAuth } from '../../../hooks/useAuth';
 
@@ -14,10 +13,10 @@ const MyPostsPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
 
-  const { data, isLoading } = useGetPostsQuery({ page, limit: 10 });
+  const { data, isLoading } = useGetPostsQuery({ page, limit: 10, userId: user?.id });
   const [deletePost, { isLoading: deleting }] = useDeletePostMutation();
 
-  const myPosts = data?.items.filter((post) => post.userId === user?.id) || [];
+  const myPosts = data?.items || [];
 
   const handleMenuClick = (item: string) => {
     switch (item) {

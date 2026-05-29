@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SideMenu from '../components/SideMenu';
-import { NotificationSettings, PrivacySettings, AccountSecuritySettings } from '../types/user.types';
 import { useAuth } from '../../../hooks/useAuth';
 import { useDeleteAccountMutation, useGetUserSettingsQuery, useUpdateUserSettingsMutation } from '../../../store/services/api';
+import { NotificationSettings, PrivacySettings, AccountSecuritySettings } from '../../../types/api';
 
 const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   pushNotifications: true,

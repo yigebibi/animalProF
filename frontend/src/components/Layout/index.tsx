@@ -1,6 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import {
+  useGetNotificationsQuery,
+  useMarkAsReadMutation,
+  useMarkAllAsReadMutation,
+  useDeleteNotificationMutation,
+  useDeleteAllNotificationsMutation,
+} from '../../store/services/api';
 
 interface LayoutProps {
   children?: React.ReactNode;
@@ -13,11 +20,31 @@ const navItemClass = ({ isActive }: { isActive: boolean }) =>
       : 'text-[color:var(--ink-soft)] hover:text-[color:var(--ink-deep)]'
   }`;
 
+const NOTIFICATION_ICONS: Record<string, string> = {
+  like: '❤️',
+  comment: '💬',
+  follow: '👤',
+  system: '🔔',
+};
+
 const Layout: React.FC<LayoutProps> = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
+  const notificationRef = useRef<HTMLDivElement | null>(null);
+
+  const { data: notificationsData } = useGetNotificationsQuery(undefined, {
+    skip: !isAuthenticated,
+    pollingInterval: 30000,
+  });
+  const [markAsRead] = useMarkAsReadMutation();
+  const [markAllAsRead] = useMarkAllAsReadMutation();
+  const [deleteNotification] = useDeleteNotificationMutation();
+  const [deleteAllNotifications] = useDeleteAllNotificationsMutation();
+
+  const unreadCount = notificationsData?.items?.filter((n: any) => !n.isRead).length ?? 0;
 
   useEffect(() => {
     const handleResize = () => {
@@ -35,6 +62,9 @@ const Layout: React.FC<LayoutProps> = () => {
       if (!profileMenuRef.current?.contains(event.target as Node)) {
         setIsProfileMenuOpen(false);
       }
+      if (!notificationRef.current?.contains(event.target as Node)) {
+        setIsNotificationOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -45,6 +75,45 @@ const Layout: React.FC<LayoutProps> = () => {
     logout();
     setIsMobileMenuOpen(false);
     setIsProfileMenuOpen(false);
+    setIsNotificationOpen(false);
+  };
+
+  const handleMarkAsRead = async (id: number) => {
+    try {
+      await markAsRead(id).unwrap();
+    } catch (err) {
+      console.error('Failed to mark as read:', err);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllAsRead().unwrap();
+    } catch (err) {
+      console.error('Failed to mark all as read:', err);
+    }
+  };
+
+  const handleDeleteNotification = async (id: number) => {
+    try {
+      await deleteNotification(id).unwrap();
+    } catch (err) {
+      console.error('Failed to delete notification:', err);
+    }
+  };
+
+  const formatRelativeDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    if (diffMins < 1) return '刚刚';
+    if (diffMins < 60) return `${diffMins}分钟前`;
+    if (diffHours < 24) return `${diffHours}小时前`;
+    if (diffDays < 7) return `${diffDays}天前`;
+    return date.toLocaleDateString('zh-CN');
   };
 
   return (
@@ -84,6 +153,97 @@ const Layout: React.FC<LayoutProps> = () => {
                   >
                     发布帖子
                   </Link>
+
+                  {/* Notification Bell */}
+                  <div className="relative" ref={notificationRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsNotificationOpen((open) => !open)}
+                      className="relative flex items-center justify-center rounded-full border border-white/80 bg-white/80 p-2.5 shadow-[0_12px_30px_rgba(112,92,140,0.08)]"
+                    >
+                      <svg className="h-5 w-5 text-[color:var(--ink-soft)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                      </svg>
+                      {unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white">
+                          {unreadCount > 9 ? '9+' : unreadCount}
+                        </span>
+                      )}
+                    </button>
+                    {isNotificationOpen && (
+                      <div className="absolute right-0 z-50 mt-3 w-80 rounded-3xl border border-white/80 bg-white/95 p-0 shadow-[0_24px_50px_rgba(95,70,130,0.18)]">
+                        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+                          <span className="text-sm font-bold text-[color:var(--ink-deep)]">通知</span>
+                          {unreadCount > 0 && (
+                            <div className="flex gap-2">
+                              <button
+                                onClick={handleMarkAllAsRead}
+                                className="text-xs font-medium text-purple-600 hover:text-purple-700"
+                              >
+                                全部已读
+                              </button>
+                              <button
+                                onClick={async () => { await deleteAllNotifications(); setIsNotificationOpen(false); }}
+                                className="text-xs font-medium text-red-500 hover:text-red-600"
+                              >
+                                清空全部
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                        <div className="max-h-80 overflow-y-auto">
+                          {notificationsData?.items?.length === 0 ? (
+                            <div className="px-4 py-8 text-center text-sm text-[color:var(--ink-soft)]">
+                              暂无通知
+                            </div>
+                          ) : (
+                            (notificationsData?.items || []).slice(0, 10).map((notification: any) => (
+                              <div
+                                key={notification.id}
+                                className={`flex items-start gap-3 px-4 py-3 transition-colors hover:bg-amber-50 ${
+                                  !notification.isRead ? 'bg-rose-50/50' : ''
+                                }`}
+                              >
+                                <span className="mt-0.5 text-base flex-shrink-0">
+                                  {NOTIFICATION_ICONS[notification.type] || '🔔'}
+                                </span>
+                                <div className="flex-1 min-w-0">
+                                  <p className={`text-sm ${!notification.isRead ? 'font-semibold text-[color:var(--ink-deep)]' : 'text-[color:var(--ink-soft)]'}`}>
+                                    {notification.content}
+                                  </p>
+                                  <p className="mt-0.5 text-xs text-gray-400">
+                                    {formatRelativeDate(notification.createdAt)}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  {!notification.isRead && (
+                                    <button
+                                      onClick={() => handleMarkAsRead(notification.id)}
+                                      className="rounded-full p-1 text-purple-500 hover:bg-purple-50"
+                                      title="标记已读"
+                                    >
+                                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                      </svg>
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => handleDeleteNotification(notification.id)}
+                                    className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                                    title="删除"
+                                  >
+                                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   <div className="relative" ref={profileMenuRef}>
                     <button

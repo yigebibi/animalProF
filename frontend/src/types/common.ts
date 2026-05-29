@@ -71,6 +71,7 @@ export interface Post {
   viewCount: number;
   likeCount: number;
   commentCount: number;
+  favoriteCount: number;
   createdAt: string;
   updatedAt: string;
   user?: User;
@@ -130,14 +131,10 @@ export interface Notification {
 
 export interface FileInfo {
   id: number;
-  userId: number;
-  originalName: string;
+  url: string;
   fileName: string;
-  filePath: string;
-  url?: string;
   fileSize: number;
   mimeType: string;
   fileType: string;
-  status: number;
   createdAt: string;
 }
