@@ -64,14 +64,15 @@ const MyFavoritesPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-transparent">
       <div className="flex h-screen">
         <SideMenu activeItem="favorites" onItemClick={handleMenuClick} />
 
         <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="bg-white shadow-sm border-b border-gray-200 p-4">
+          <div className="border-b border-white/80 bg-white/70 p-5 shadow-[0_14px_35px_rgba(99,74,137,0.08)] backdrop-blur-xl">
             <div className="max-w-4xl mx-auto">
-              <h1 className="text-xl font-semibold text-gray-900">我的收藏</h1>
+              <div className="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--ink-soft)]">Favorites</div>
+              <h1 className="mt-2 text-3xl font-black text-[color:var(--ink-deep)]">我的收藏</h1>
             </div>
           </div>
 
@@ -82,7 +83,7 @@ const MyFavoritesPage: React.FC = () => {
                   <div className="animate-spin rounded-full h-8 w-8 border-4 border-purple-500 border-t-transparent"></div>
                 </div>
               ) : favorites.length === 0 ? (
-                <div className="bg-white rounded-lg shadow-md p-12 text-center">
+                <div className="rounded-[28px] border border-white/80 bg-white/85 p-12 text-center shadow-[0_18px_40px_rgba(99,74,137,0.10)]">
                   <svg
                     className="w-16 h-16 mx-auto mb-4 text-gray-400"
                     fill="none"
@@ -91,11 +92,11 @@ const MyFavoritesPage: React.FC = () => {
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                   </svg>
-                  <h2 className="text-lg font-semibold text-gray-900 mb-2">还没有收藏</h2>
-                  <p className="text-gray-500 mb-6">收藏喜欢的帖子，方便以后查看</p>
+                  <h2 className="mb-2 text-lg font-bold text-[color:var(--ink-deep)]">还没有收藏</h2>
+                  <p className="mb-6 text-[color:var(--ink-soft)]">收藏喜欢的帖子，方便以后查看</p>
                   <button
                     onClick={() => navigate('/posts')}
-                    className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium"
+                    className="rounded-full bg-[color:var(--ink-deep)] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(78,56,120,0.20)]"
                   >
                     浏览帖子
                   </button>
@@ -103,7 +104,7 @@ const MyFavoritesPage: React.FC = () => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {favorites.map((post) => (
-                    <div key={post.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div key={post.id} className="overflow-hidden rounded-[28px] border border-white/80 bg-white/85 shadow-[0_18px_40px_rgba(99,74,137,0.10)]">
                       {post.coverUrl && (
                         <div
                           className="aspect-video overflow-hidden cursor-pointer"
@@ -112,21 +113,21 @@ const MyFavoritesPage: React.FC = () => {
                           <img
                             src={post.coverUrl}
                             alt={post.title}
-                            className="w-full h-full object-cover hover:scale-105 transition-transform"
+                            className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
                           />
                         </div>
                       )}
                       <div className="p-4">
-                        <h3
-                          className="font-semibold text-gray-900 mb-1 line-clamp-1 cursor-pointer hover:text-purple-600"
-                          onClick={() => navigate(`/posts/${post.id}`)}
-                        >
+                         <h3
+                           className="mb-1 line-clamp-1 cursor-pointer text-lg font-bold text-[color:var(--ink-deep)] hover:text-rose-500"
+                           onClick={() => navigate(`/posts/${post.id}`)}
+                         >
                           {post.title}
                         </h3>
-                        <p className="text-sm text-gray-500 mb-2">
+                         <p className="mb-2 text-sm text-[color:var(--ink-soft)]">
                           {formatDate(post.createdAt)}
                         </p>
-                        <p className="text-gray-600 text-sm line-clamp-2 mb-3">
+                         <p className="mb-3 line-clamp-2 text-sm text-[color:var(--ink-soft)]">
                           {post.content}
                         </p>
                         <div className="flex items-center justify-between">
@@ -134,15 +135,15 @@ const MyFavoritesPage: React.FC = () => {
                             <img
                               src={post.user?.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.user?.username || post.userId}`}
                               alt={post.user?.nickname}
-                              className="w-6 h-6 rounded-full"
+                             className="h-7 w-7 rounded-full border border-amber-100"
                             />
-                            <span className="text-sm text-gray-600">
+                             <span className="text-sm font-medium text-[color:var(--ink-deep)]">
                               {post.user?.nickname || post.user?.username}
                             </span>
                           </div>
                           <button
                             onClick={() => setShowUnfavoriteConfirm(post.id)}
-                            className="text-sm text-yellow-600 hover:text-yellow-700 flex items-center gap-1"
+                             className="flex items-center gap-1 text-sm font-semibold text-amber-600 hover:text-amber-700"
                           >
                             <svg className="w-4 h-4" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />

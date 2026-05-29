@@ -64,17 +64,20 @@ const MyPostsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-transparent">
       <div className="flex h-screen">
         <SideMenu activeItem="posts" onItemClick={handleMenuClick} />
 
         <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="bg-white shadow-sm border-b border-gray-200 p-4">
+          <div className="border-b border-white/80 bg-white/70 p-5 shadow-[0_14px_35px_rgba(99,74,137,0.08)] backdrop-blur-xl">
             <div className="max-w-4xl mx-auto flex justify-between items-center">
-              <h1 className="text-xl font-semibold text-gray-900">我的帖子</h1>
+              <div>
+                <div className="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--ink-soft)]">My Notes</div>
+                <h1 className="mt-2 text-3xl font-black text-[color:var(--ink-deep)]">我的帖子</h1>
+              </div>
               <button
                 onClick={() => navigate('/posts/create')}
-                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 font-medium"
+                className="rounded-full bg-[color:var(--ink-deep)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(78,56,120,0.20)]"
               >
                 发布帖子
               </button>
@@ -88,7 +91,7 @@ const MyPostsPage: React.FC = () => {
                   <div className="animate-spin rounded-full h-8 w-8 border-4 border-purple-500 border-t-transparent"></div>
                 </div>
               ) : myPosts.length === 0 ? (
-                <div className="bg-white rounded-lg shadow-md p-12 text-center">
+                <div className="rounded-[28px] border border-white/80 bg-white/85 p-12 text-center shadow-[0_18px_40px_rgba(99,74,137,0.10)]">
                   <svg
                     className="w-16 h-16 mx-auto mb-4 text-gray-400"
                     fill="none"
@@ -97,11 +100,11 @@ const MyPostsPage: React.FC = () => {
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
-                  <h2 className="text-lg font-semibold text-gray-900 mb-2">还没有发布帖子</h2>
-                  <p className="text-gray-500 mb-6">发布你的第一个帖子吧！</p>
+                  <h2 className="mb-2 text-lg font-bold text-[color:var(--ink-deep)]">还没有发布帖子</h2>
+                  <p className="mb-6 text-[color:var(--ink-soft)]">发布你的第一个帖子吧！</p>
                   <button
                     onClick={() => navigate('/posts/create')}
-                    className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium"
+                    className="rounded-full bg-[color:var(--ink-deep)] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(78,56,120,0.20)]"
                   >
                     发布帖子
                   </button>
@@ -109,7 +112,7 @@ const MyPostsPage: React.FC = () => {
               ) : (
                 <div className="space-y-4">
                   {myPosts.map((post) => (
-                    <div key={post.id} className="bg-white rounded-lg shadow-md p-4 flex gap-4">
+                    <div key={post.id} className="flex gap-4 rounded-[28px] border border-white/80 bg-white/85 p-5 shadow-[0_18px_40px_rgba(99,74,137,0.10)]">
                       {post.coverUrl && (
                         <img
                           src={post.coverUrl}
@@ -131,29 +134,29 @@ const MyPostsPage: React.FC = () => {
                               {formatDate(post.createdAt)}
                             </p>
                           </div>
-                          <span className={`px-2 py-0.5 text-xs rounded-full flex-shrink-0 ${
-                            post.status === 1 ? 'bg-green-100 text-green-700' :
-                            post.status === 0 ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-red-100 text-red-700'
-                          }`}>
+                           <span className={`flex-shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${
+                             post.status === 1 ? 'bg-green-100 text-green-700' :
+                             post.status === 0 ? 'bg-yellow-100 text-yellow-700' :
+                             'bg-red-100 text-red-700'
+                           }`}>
                             {post.status === 1 ? '已发布' : post.status === 0 ? '草稿' : '已禁用'}
                           </span>
                         </div>
                         <p className="text-gray-600 mt-2 line-clamp-2">{post.content}</p>
-                        <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
-                          <span className="flex items-center gap-1">
+                         <div className="mt-3 flex items-center gap-3 text-sm text-[color:var(--ink-soft)]">
+                           <span className="flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                             </svg>
                             {post.likeCount}
                           </span>
-                          <span className="flex items-center gap-1">
+                           <span className="flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-1">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                             </svg>
                             {post.commentCount}
                           </span>
-                          <span className="flex items-center gap-1">
+                           <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -161,22 +164,22 @@ const MyPostsPage: React.FC = () => {
                             {post.viewCount}
                           </span>
                         </div>
-                        <div className="flex gap-3 mt-3">
+                         <div className="mt-4 flex gap-3">
                           <button
                             onClick={() => navigate(`/posts/${post.id}`)}
-                            className="text-sm text-purple-600 hover:text-purple-700"
+                             className="text-sm font-semibold text-rose-500 hover:text-rose-600"
                           >
                             查看
                           </button>
                           <button
                             onClick={() => navigate(`/posts/${post.id}/edit`)}
-                            className="text-sm text-gray-600 hover:text-gray-700"
+                             className="text-sm font-semibold text-[color:var(--ink-soft)] hover:text-[color:var(--ink-deep)]"
                           >
                             编辑
                           </button>
                           <button
                             onClick={() => setShowDeleteConfirm(post.id)}
-                            className="text-sm text-red-600 hover:text-red-700"
+                             className="text-sm font-semibold text-red-600 hover:text-red-700"
                           >
                             删除
                           </button>

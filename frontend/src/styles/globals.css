@@ -7,15 +7,42 @@
   --breakpoint-md: 768px;    /* 平板 */
   --breakpoint-lg: 1024px;   /* 桌面 */
   --breakpoint-xl: 1280px;   /* 大屏幕 */
+  --surface-cream: #fffaf4;
+  --surface-peach: #ffe7d6;
+  --surface-sky: #dff4ff;
+  --surface-leaf: #e7f8ed;
+  --ink-deep: #2b2142;
+  --ink-soft: #6f6283;
+  --line-soft: rgba(96, 72, 128, 0.14);
+}
+
+html {
+  background:
+    radial-gradient(circle at top left, rgba(255, 213, 178, 0.55), transparent 28%),
+    radial-gradient(circle at top right, rgba(196, 232, 255, 0.45), transparent 24%),
+    linear-gradient(180deg, #fffaf4 0%, #fff7fb 45%, #f8fbff 100%);
 }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  color: var(--ink-deep);
+  background: transparent;
+  font-family: 'Trebuchet MS', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+::selection {
+  background: rgba(255, 192, 203, 0.45);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
 code {

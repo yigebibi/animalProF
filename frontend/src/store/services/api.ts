@@ -180,6 +180,7 @@ export const api = createApi({
         body: data,
       }),
       invalidatesTags: ['User'],
+      transformResponse: (response: any) => unwrapResponse<User>(response, '更新用户信息失败'),
     }),
     uploadAvatar: builder.mutation<{ avatarUrl: string }, FormData>({
       query: (formData) => ({

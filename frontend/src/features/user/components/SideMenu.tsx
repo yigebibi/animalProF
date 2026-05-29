@@ -92,9 +92,13 @@ const SideMenu: React.FC<SideMenuProps> = ({ activeItem, onItemClick }) => {
   ];
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 h-full flex flex-col justify-between">
+    <div className="flex h-full w-64 flex-col justify-between border-r border-white/70 bg-[rgba(255,255,255,0.72)] backdrop-blur-xl">
       <div className="p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-6">个人中心</h2>
+        <div className="mb-6 rounded-[24px] bg-[linear-gradient(135deg,#fff2e5,#ffffff,#e8f5ff)] p-4 shadow-[0_14px_30px_rgba(99,74,137,0.10)]">
+          <div className="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--ink-soft)]">Profile Hub</div>
+          <h2 className="mt-2 text-xl font-black text-[color:var(--ink-deep)]">个人中心</h2>
+          <p className="mt-1 text-sm text-[color:var(--ink-soft)]">把资料、宠物、帖子和收藏整理得软乎又清楚。</p>
+        </div>
         <nav className="space-y-2">
           {menuItems.map((item) => (
             <Link
@@ -102,10 +106,10 @@ const SideMenu: React.FC<SideMenuProps> = ({ activeItem, onItemClick }) => {
               to={item.path}
               onClick={() => onItemClick?.(item.key)}
               className={
-                `flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                `flex items-center rounded-[20px] px-4 py-3 text-sm font-medium transition-all ${
                   activeItem === item.key
-                    ? 'bg-purple-50 text-purple-700 border border-purple-200'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'border border-rose-200 bg-rose-50 text-rose-600 shadow-[0_12px_25px_rgba(99,74,137,0.08)]'
+                    : 'text-[color:var(--ink-soft)] hover:bg-white hover:text-[color:var(--ink-deep)]'
                 }`
               }
             >
@@ -119,7 +123,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ activeItem, onItemClick }) => {
       <div className="p-6 pt-0">
         <button
           onClick={() => onItemClick?.('logout')}
-          className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+          className="flex w-full items-center justify-center rounded-full bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-100"
         >
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path

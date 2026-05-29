@@ -124,7 +124,7 @@ const SettingsPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-transparent">
       <div className="flex h-screen">
         {/* 侧边栏菜单 */}
         <SideMenu
@@ -135,9 +135,10 @@ const SettingsPage: React.FC = () => {
         {/* 主内容区域 */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* 页面标题 */}
-          <div className="bg-white shadow-sm border-b border-gray-200 p-4">
+          <div className="border-b border-white/80 bg-white/70 p-5 shadow-[0_14px_35px_rgba(99,74,137,0.08)] backdrop-blur-xl">
             <div className="max-w-4xl mx-auto">
-              <h1 className="text-xl font-semibold text-gray-900">账户设置</h1>
+              <div className="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--ink-soft)]">Preferences</div>
+              <h1 className="mt-2 text-3xl font-black text-[color:var(--ink-deep)]">账户设置</h1>
             </div>
           </div>
 
@@ -146,14 +147,14 @@ const SettingsPage: React.FC = () => {
             <div className="max-w-4xl mx-auto p-6 space-y-6">
               {/* 成功提示 */}
               {successMessage && (
-                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
+                <div className="mb-6 rounded-[22px] border border-green-200 bg-green-50 p-4 text-green-700">
                   {successMessage}
                 </div>
               )}
 
               {/* 通知设置 */}
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">通知设置</h2>
+              <div className="rounded-[28px] border border-white/80 bg-white/80 p-6 shadow-[0_18px_40px_rgba(99,74,137,0.10)]">
+                <h2 className="mb-4 text-2xl font-black text-[color:var(--ink-deep)]">通知设置</h2>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -263,8 +264,8 @@ const SettingsPage: React.FC = () => {
               </div>
 
               {/* 隐私设置 */}
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">隐私设置</h2>
+              <div className="rounded-[28px] border border-white/80 bg-white/80 p-6 shadow-[0_18px_40px_rgba(99,74,137,0.10)]">
+                <h2 className="text-2xl font-black text-[color:var(--ink-deep)] mb-4">隐私设置</h2>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -353,8 +354,8 @@ const SettingsPage: React.FC = () => {
               </div>
 
               {/* 账户安全 */}
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">账户安全</h2>
+              <div className="rounded-[28px] border border-white/80 bg-white/80 p-6 shadow-[0_18px_40px_rgba(99,74,137,0.10)]">
+                <h2 className="text-2xl font-black text-[color:var(--ink-deep)] mb-4">账户安全</h2>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -416,7 +417,7 @@ const SettingsPage: React.FC = () => {
               </div>
 
               {/* 危险区域 */}
-              <div className="bg-white rounded-lg shadow-md p-6 border-2 border-red-100">
+              <div className="rounded-[28px] border border-rose-200 bg-[rgba(255,244,246,0.86)] p-6 shadow-[0_18px_40px_rgba(99,74,137,0.10)]">
                 <h2 className="text-lg font-semibold text-red-900 mb-4">危险操作</h2>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -442,7 +443,7 @@ const SettingsPage: React.FC = () => {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-full bg-[color:var(--ink-deep)] px-6 py-3 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(78,56,120,0.22)] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {saving ? '保存中...' : '保存设置'}
                 </button>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import SideMenu from '../components/SideMenu';
 import EditProfileForm from '../components/EditProfileForm';
 import { useAuth } from '../../../hooks/useAuth';
@@ -68,9 +68,9 @@ const EditProfilePage: React.FC = () => {
                 <nav className="flex" aria-label="Breadcrumb">
                   <ol className="inline-flex items-center space-x-1 md:space-x-3">
                     <li className="inline-flex items-center">
-                      <a href="/profile" className="text-gray-600 hover:text-purple-600">
+                      <Link to="/profile" className="text-gray-600 hover:text-purple-600">
                         个人中心
-                      </a>
+                      </Link>
                     </li>
                     <li>
                       <div className="flex items-center">

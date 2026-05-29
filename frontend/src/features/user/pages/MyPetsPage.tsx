@@ -147,17 +147,20 @@ const MyPetsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-transparent">
       <div className="flex h-screen">
         <SideMenu activeItem="pets" onItemClick={handleMenuClick} />
 
         <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="bg-white shadow-sm border-b border-gray-200 p-4">
+          <div className="border-b border-white/80 bg-white/70 p-5 shadow-[0_14px_35px_rgba(99,74,137,0.08)] backdrop-blur-xl">
             <div className="max-w-4xl mx-auto flex justify-between items-center">
-              <h1 className="text-xl font-semibold text-gray-900">我的宠物</h1>
+              <div>
+                <div className="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--ink-soft)]">Pet Cards</div>
+                <h1 className="mt-2 text-3xl font-black text-[color:var(--ink-deep)]">我的宠物</h1>
+              </div>
               <button
                 onClick={handleOpenAdd}
-                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 font-medium"
+                className="rounded-full bg-[color:var(--ink-deep)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(78,56,120,0.20)]"
               >
                 添加宠物
               </button>
@@ -171,7 +174,7 @@ const MyPetsPage: React.FC = () => {
                   <div className="animate-spin rounded-full h-8 w-8 border-4 border-purple-500 border-t-transparent"></div>
                 </div>
               ) : !pets || pets.length === 0 ? (
-                <div className="bg-white rounded-lg shadow-md p-12 text-center">
+                <div className="rounded-[28px] border border-white/80 bg-white/85 p-12 text-center shadow-[0_18px_40px_rgba(99,74,137,0.10)]">
                   <svg
                     className="w-16 h-16 mx-auto mb-4 text-gray-400"
                     fill="none"
@@ -180,11 +183,11 @@ const MyPetsPage: React.FC = () => {
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
-                  <h2 className="text-lg font-semibold text-gray-900 mb-2">还没有宠物</h2>
-                  <p className="text-gray-500 mb-6">添加你的第一只宠物吧！</p>
+                  <h2 className="mb-2 text-lg font-bold text-[color:var(--ink-deep)]">还没有宠物</h2>
+                  <p className="mb-6 text-[color:var(--ink-soft)]">添加你的第一只宠物吧！</p>
                   <button
                     onClick={handleOpenAdd}
-                    className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium"
+                    className="rounded-full bg-[color:var(--ink-deep)] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(78,56,120,0.20)]"
                   >
                     添加宠物
                   </button>
@@ -192,17 +195,17 @@ const MyPetsPage: React.FC = () => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {pets.map((pet) => (
-                    <div key={pet.id} className="bg-white rounded-lg shadow-md p-4 flex gap-4">
+                    <div key={pet.id} className="flex gap-4 rounded-[28px] border border-white/80 bg-white/85 p-5 shadow-[0_18px_40px_rgba(99,74,137,0.10)]">
                       <img
-                        src={pet.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${pet.name}`}
-                        alt={pet.name}
-                        className="w-20 h-20 rounded-full object-cover"
-                      />
+                         src={pet.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${pet.name}`}
+                         alt={pet.name}
+                         className="h-20 w-20 rounded-[24px] border border-amber-100 object-cover"
+                       />
                       <div className="flex-1">
                         <div className="flex justify-between items-start">
                           <div>
-                            <h3 className="font-semibold text-gray-900">{pet.name}</h3>
-                            <p className="text-sm text-gray-500">
+                            <h3 className="text-lg font-bold text-[color:var(--ink-deep)]">{pet.name}</h3>
+                            <p className="text-sm text-[color:var(--ink-soft)]">
                               {pet.type} {pet.breed && `- ${pet.breed}`}
                             </p>
                           </div>
@@ -214,20 +217,20 @@ const MyPetsPage: React.FC = () => {
                             {pet.gender === 1 ? '♂ 公' : pet.gender === 2 ? '♀ 母' : '未知'}
                           </span>
                         </div>
-                        <div className="mt-2 text-sm text-gray-600 space-y-1">
+                         <div className="mt-2 space-y-1 text-sm text-[color:var(--ink-soft)]">
                           {pet.birthday && <p>生日: {formatDate(pet.birthday)} ({calculateAge(pet.birthday)})</p>}
                           {pet.bio && <p className="line-clamp-2">{pet.bio}</p>}
                         </div>
                         <div className="mt-3 flex gap-2">
                           <button
                             onClick={() => handleOpenEdit(pet)}
-                            className="text-sm text-purple-600 hover:text-purple-700"
+                             className="text-sm font-semibold text-rose-500 hover:text-rose-600"
                           >
                             编辑
                           </button>
                           <button
                             onClick={() => setShowDeleteConfirm(pet.id)}
-                            className="text-sm text-red-600 hover:text-red-700"
+                             className="text-sm font-semibold text-red-600 hover:text-red-700"
                           >
                             删除
                           </button>

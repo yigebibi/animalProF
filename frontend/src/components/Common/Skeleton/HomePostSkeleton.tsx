@@ -2,9 +2,9 @@ import React from 'react';
 import Skeleton from './index';
 
 const HomePostSkeleton: React.FC = () => (
-  <div className="bg-white rounded-xl shadow-md overflow-hidden">
+  <div className="overflow-hidden rounded-[28px] border border-white/80 bg-white/85 shadow-[0_18px_40px_rgba(98,74,132,0.10)]">
     <Skeleton variant="rectangular" height="180px" className="aspect-video" />
-    <div className="p-5">
+    <div className="p-6">
       <Skeleton height="1.5rem" className="mb-3" width="85%" />
       <Skeleton height="1rem" className="mb-2" />
       <Skeleton height="1rem" className="mb-4" width="60%" />

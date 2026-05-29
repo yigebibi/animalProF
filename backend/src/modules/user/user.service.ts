@@ -87,7 +87,7 @@ export class UserService {
   }
 
   async getProfileActivities(userId: number) {
-    const [posts, pets] = await Promise.all([
+    const [posts, pets, comments, favorites, likes] = await Promise.all([
       this.prisma.post.findMany({
         where: { userId, status: { not: -1 } },
         orderBy: { createdAt: 'desc' },
@@ -108,22 +108,160 @@ export class UserService {
           createdAt: true,
         },
       }),
+      this.prisma.comment.findMany({
+        where: { userId, status: 1 },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          content: true,
+          createdAt: true,
+          post: {
+            select: {
+              title: true,
+            },
+          },
+        },
+      }),
+      this.prisma.favorite.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          createdAt: true,
+          post: {
+            select: {
+              title: true,
+            },
+          },
+        },
+      }),
+      this.prisma.like.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          targetType: true,
+          targetId: true,
+          createdAt: true,
+        },
+      }),
     ]);
 
-    return [
+    const likedPostIds = likes.filter((like) => like.targetType === 'post').map((like) => like.targetId);
+    const likedCommentIds = likes.filter((like) => like.targetType === 'comment').map((like) => like.targetId);
+
+    const [likedPosts, likedComments] = await Promise.all([
+      likedPostIds.length === 0
+        ? []
+        : this.prisma.post.findMany({
+            where: { id: { in: likedPostIds } },
+            select: {
+              id: true,
+              title: true,
+            },
+          }),
+      likedCommentIds.length === 0
+        ? []
+        : this.prisma.comment.findMany({
+            where: { id: { in: likedCommentIds } },
+            select: {
+              id: true,
+              content: true,
+              post: {
+                select: {
+                  title: true,
+                },
+              },
+            },
+          }),
+    ]);
+
+    const likedPostMap = new Map<number, { id: number; title: string }>(
+      likedPosts.map((post) => [post.id, post] as [number, { id: number; title: string }]),
+    );
+    const likedCommentMap = new Map<number, { id: number; content: string; post: { title: string } }>(
+      likedComments.map(
+        (comment) =>
+          [comment.id, comment] as [number, { id: number; content: string; post: { title: string } }],
+      ),
+    );
+
+    const activities = [
       ...posts.map((post) => ({
         id: `post-${post.id}`,
-        type: 'post',
+        type: 'post' as const,
         title: post.title,
         createdAt: post.createdAt,
       })),
       ...pets.map((pet) => ({
         id: `pet-${pet.id}`,
-        type: 'pet',
+        type: 'pet' as const,
         title: pet.name,
         createdAt: pet.createdAt,
       })),
-    ]
+      ...comments.map((comment) => ({
+        id: `comment-${comment.id}`,
+        type: 'comment' as const,
+        title: comment.post.title,
+        content: comment.content,
+        createdAt: comment.createdAt,
+      })),
+      ...favorites.map((favorite) => ({
+        id: `favorite-${favorite.id}`,
+        type: 'favorite' as const,
+        title: favorite.post.title,
+        createdAt: favorite.createdAt,
+      })),
+      ...likes.flatMap((like) => {
+        if (like.targetType === 'post') {
+          const post = likedPostMap.get(like.targetId);
+          if (!post) {
+            return [] as Array<{
+              id: string;
+              type: 'like-post' | 'like-comment';
+              title: string;
+              content?: string;
+              createdAt: Date;
+            }>;
+          }
+
+          return [
+            {
+              id: `like-post-${like.id}`,
+              type: 'like-post' as const,
+              title: post.title,
+              createdAt: like.createdAt,
+            },
+          ];
+        }
+
+        const comment = likedCommentMap.get(like.targetId);
+        if (!comment) {
+          return [] as Array<{
+            id: string;
+            type: 'like-post' | 'like-comment';
+            title: string;
+            content?: string;
+            createdAt: Date;
+          }>;
+        }
+
+        return [
+          {
+            id: `like-comment-${like.id}`,
+            type: 'like-comment' as const,
+            title: comment.post.title,
+            content: comment.content,
+            createdAt: like.createdAt,
+          },
+        ];
+      }),
+    ];
+
+    return activities
       .sort((first, second) => second.createdAt.getTime() - first.createdAt.getTime())
       .slice(0, 6);
   }

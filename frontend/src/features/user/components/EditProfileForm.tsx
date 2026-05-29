@@ -32,9 +32,9 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({
       setFormData({
         nickname: initialData?.nickname || user.nickname || user.username,
         bio: initialData?.bio || user.bio || '',
-        gender: initialData?.gender ?? Gender.UNKNOWN,
-        birthday: initialData?.birthday || '',
-        city: initialData?.city || '',
+        gender: initialData?.gender ?? user.gender ?? Gender.UNKNOWN,
+        birthday: initialData?.birthday || user.birthday?.split('T')[0] || '',
+        city: initialData?.city || user.city || '',
       });
     }
   }, [user, initialData]);
@@ -54,8 +54,20 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({
     clearError();
     setShowSuccess(false);
 
+    const normalizedBirthday = formData.birthday
+      ? new Date(`${formData.birthday}T00:00:00`).toISOString()
+      : undefined;
+
+    const payload: UpdateProfileRequest = {
+      nickname: (formData.nickname || '').trim(),
+      bio: formData.bio?.trim() || undefined,
+      gender: formData.gender,
+      birthday: normalizedBirthday,
+      city: formData.city?.trim() || undefined,
+    };
+
     try {
-      await updateProfile(formData, () => {
+      await updateProfile(payload, () => {
         setShowSuccess(true);
         setTimeout(() => {
           onSuccess?.();

@@ -136,7 +136,7 @@ const PostDetailPage: React.FC = () => {
 
   if (postLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-transparent py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center items-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent"></div>
@@ -148,13 +148,13 @@ const PostDetailPage: React.FC = () => {
 
   if (postError || !post) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-transparent py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-red-50 text-red-700 p-4 rounded-lg text-center">
+          <div className="rounded-[24px] border border-rose-200 bg-rose-50 p-4 text-center text-rose-700 shadow-[0_16px_35px_rgba(99,74,137,0.08)]">
             帖子不存在或已被删除
           </div>
           <div className="text-center mt-4">
-            <Link to="/posts" className="text-purple-600 hover:text-purple-700">
+            <Link to="/posts" className="font-semibold text-rose-500 hover:text-rose-600">
               返回帖子列表
             </Link>
           </div>
@@ -167,12 +167,12 @@ const PostDetailPage: React.FC = () => {
   const topLevelComments = comments.filter((c) => !c.parentId);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-transparent py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back button */}
         <Link
           to="/posts"
-          className="inline-flex items-center text-gray-600 hover:text-purple-600 mb-6"
+          className="mb-6 inline-flex items-center rounded-full border border-white/80 bg-white/80 px-4 py-2 text-sm font-semibold text-[color:var(--ink-soft)] shadow-[0_12px_25px_rgba(99,74,137,0.08)] hover:text-[color:var(--ink-deep)]"
         >
           <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -181,9 +181,9 @@ const PostDetailPage: React.FC = () => {
         </Link>
 
         {/* Post Content */}
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+        <div className="overflow-hidden rounded-[32px] border border-white/80 bg-white/88 shadow-[0_22px_55px_rgba(99,74,137,0.12)]">
           {post.coverUrl && (
-            <div className="aspect-video overflow-hidden">
+            <div className="aspect-video overflow-hidden bg-gradient-to-br from-amber-100 via-rose-50 to-sky-100">
               <img
                 src={post.coverUrl}
                 alt={post.title}
@@ -192,23 +192,26 @@ const PostDetailPage: React.FC = () => {
             </div>
           )}
 
-          <div className="p-6">
+          <div className="p-7 sm:p-8">
             {/* Title */}
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">{post.title}</h1>
+            <div className="mb-3 inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--ink-soft)]">
+              Pet Story
+            </div>
+            <h1 className="mb-4 text-3xl font-black text-[color:var(--ink-deep)] sm:text-4xl">{post.title}</h1>
 
             {/* Author info */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <img
                   src={post.user?.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.user?.username || post.userId}`}
                   alt={post.user?.nickname}
-                  className="w-10 h-10 rounded-full"
+                  className="h-12 w-12 rounded-full border border-amber-100 object-cover"
                 />
                 <div>
-                  <div className="font-medium text-gray-900">
+                  <div className="font-semibold text-[color:var(--ink-deep)]">
                     {post.user?.nickname || post.user?.username || '用户'}
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-[color:var(--ink-soft)]">
                     {formatDate(post.createdAt)}
                   </div>
                 </div>
@@ -218,10 +221,10 @@ const PostDetailPage: React.FC = () => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleLike}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg border ${
+                  className={`flex items-center gap-1 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
                     isLiked
-                      ? 'border-red-300 bg-red-50 text-red-600'
-                      : 'border-gray-300 hover:bg-gray-50 text-gray-600'
+                      ? 'border border-rose-200 bg-rose-50 text-rose-600'
+                      : 'border border-white/80 bg-white/80 text-[color:var(--ink-soft)] hover:text-[color:var(--ink-deep)]'
                   }`}
                 >
                   <svg className="w-5 h-5" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
@@ -232,10 +235,10 @@ const PostDetailPage: React.FC = () => {
 
                 <button
                   onClick={handleFavorite}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg border ${
+                  className={`flex items-center gap-1 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
                     isFavorited
-                      ? 'border-yellow-300 bg-yellow-50 text-yellow-600'
-                      : 'border-gray-300 hover:bg-gray-50 text-gray-600'
+                      ? 'border border-amber-200 bg-amber-50 text-amber-600'
+                      : 'border border-white/80 bg-white/80 text-[color:var(--ink-soft)] hover:text-[color:var(--ink-deep)]'
                   }`}
                 >
                   <svg className="w-5 h-5" fill={isFavorited ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
@@ -252,7 +255,7 @@ const PostDetailPage: React.FC = () => {
                 {post.tags.map((tag, index) => (
                   <span
                     key={index}
-                    className="px-3 py-1 bg-purple-100 text-purple-700 text-sm rounded-full"
+                    className="rounded-full bg-rose-50 px-3 py-1 text-sm font-semibold text-rose-600"
                   >
                     #{tag}
                   </span>
@@ -261,20 +264,20 @@ const PostDetailPage: React.FC = () => {
             )}
 
             {/* Content */}
-            <div className="prose max-w-none text-gray-700 whitespace-pre-wrap">
+            <div className="prose max-w-none whitespace-pre-wrap leading-8 text-[color:var(--ink-deep)]">
               {post.content}
             </div>
 
             {/* Post stats */}
-            <div className="flex items-center gap-6 mt-8 pt-6 border-t text-gray-500 text-sm">
-              <span className="flex items-center gap-1">
+            <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-[color:var(--line-soft)] pt-6 text-sm text-[color:var(--ink-soft)]">
+              <span className="flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1.5">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
                 {post.viewCount} 浏览
               </span>
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1 rounded-full bg-sky-50 px-3 py-1.5">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
@@ -286,18 +289,18 @@ const PostDetailPage: React.FC = () => {
 
         {/* Comments Section */}
         <div className="mt-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">
+          <h2 className="mb-6 text-2xl font-black text-[color:var(--ink-deep)]">
             评论 ({post.commentCount})
           </h2>
 
           {/* Comment Form */}
           {isAuthenticated ? (
-            <form onSubmit={handleSubmitComment} className="bg-white rounded-lg shadow-md p-4 mb-6">
+            <form onSubmit={handleSubmitComment} className="mb-6 rounded-[28px] border border-white/80 bg-white/85 p-5 shadow-[0_18px_40px_rgba(99,74,137,0.10)]">
               <textarea
                 value={commentContent}
                 onChange={(e) => setCommentContent(e.target.value)}
                 placeholder={replyingTo ? `回复评论...` : '发表你的看法...'}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                className="w-full resize-none rounded-[22px] border border-[color:var(--line-soft)] bg-[rgba(255,250,244,0.76)] px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-purple-300"
                 rows={replyingTo ? 2 : 3}
               />
               <div className="flex justify-between items-center mt-3">
@@ -305,7 +308,7 @@ const PostDetailPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setReplyingTo(null)}
-                    className="text-sm text-gray-500 hover:text-gray-700"
+                    className="text-sm font-medium text-[color:var(--ink-soft)] hover:text-[color:var(--ink-deep)]"
                   >
                     取消回复
                   </button>
@@ -313,18 +316,18 @@ const PostDetailPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={!commentContent.trim() || creatingComment}
-                  className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
+                  className="ml-auto rounded-full bg-[color:var(--ink-deep)] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(78,56,120,0.18)] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {creatingComment ? '发送中...' : '发送评论'}
                 </button>
               </div>
             </form>
           ) : (
-            <div className="bg-white rounded-lg shadow-md p-6 text-center mb-6">
-              <p className="text-gray-600 mb-4">登录后参与评论</p>
+            <div className="mb-6 rounded-[28px] border border-white/80 bg-white/85 p-6 text-center shadow-[0_18px_40px_rgba(99,74,137,0.10)]">
+              <p className="mb-4 text-[color:var(--ink-soft)]">登录后参与评论</p>
               <Link
                 to="/auth/login"
-                className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium"
+                className="rounded-full bg-[color:var(--ink-deep)] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(78,56,120,0.18)]"
               >
                 登录
               </Link>
@@ -337,7 +340,7 @@ const PostDetailPage: React.FC = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-4 border-purple-500 border-t-transparent"></div>
             </div>
           ) : topLevelComments.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-md p-8 text-center text-gray-500">
+            <div className="rounded-[28px] border border-white/80 bg-white/85 p-8 text-center text-[color:var(--ink-soft)] shadow-[0_18px_40px_rgba(99,74,137,0.10)]">
               暂无评论，来发表第一个评论吧！
             </div>
           ) : (

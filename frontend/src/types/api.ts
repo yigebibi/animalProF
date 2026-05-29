@@ -104,8 +104,9 @@ export interface UserStatsResponse {
 
 export interface UserActivityResponse {
   id: string;
-  type: 'post' | 'pet';
+  type: 'post' | 'pet' | 'comment' | 'favorite' | 'like-post' | 'like-comment';
   title: string;
+  content?: string;
   createdAt: string;
 }
 
